@@ -2,9 +2,10 @@ from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
-
-from learn_sql_model.models import Hero, Pet
 from sqlmodel import SQLModel
+
+from learn_sql_model.models.hero import Hero
+from learn_sql_model.models.pet import Pet
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

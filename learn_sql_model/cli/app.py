@@ -4,7 +4,7 @@ from learn_sql_model.cli.api import api_app
 from learn_sql_model.cli.common import verbose_callback
 from learn_sql_model.cli.config import config_app
 from learn_sql_model.cli.hero import hero_app
-from learn_sql_model.cli.model_app import model_app
+from learn_sql_model.cli.model import model_app
 from learn_sql_model.cli.tui import tui_app
 
 app = typer.Typer(

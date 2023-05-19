@@ -3,7 +3,8 @@ from typing import TYPE_CHECKING
 from pydantic import BaseSettings
 from sqlmodel import SQLModel, Session, create_engine
 
-from learn_sql_model.models import Hero, Pet
+from learn_sql_model.models.hero import Hero
+from learn_sql_model.models.pet import Pet
 from learn_sql_model.standard_config import load
 
 models = [Hero, Pet]
@@ -14,6 +15,7 @@ if TYPE_CHECKING:
 
 class Config(BaseSettings):
     database_url: str = "sqlite:///database.db"
+    port: int = 5000
 
     class Config:
         env_prefix = "LEARN_SQL_MODEL_"
@@ -35,6 +37,11 @@ class Config(BaseSettings):
     # app.get("/heroes/")(Hero.read_heroes)
 
 
-raw_config = load("learn_sql_model")
-config = Config(**raw_config)
-config.create_db_and_tables()
+def get_config(overrides: dict = {}) -> Config:
+    raw_config = load("learn_sql_model")
+    config = Config(**raw_config, **overrides)
+    config.create_db_and_tables()
+    return config
+
+
+config = get_config()

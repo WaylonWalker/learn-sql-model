@@ -24,17 +24,18 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
+  "anyconfig",
+  "fastapi",
+  "httpx",
+  "passlib[bcrypt]",
+  "polyfactory",
+  "python-jose[cryptography]",
+  "python-multipart",
   "rich",
+  "sqlmodel",
   "textual",
   "typer",
-  "anyconfig",
-  "sqlmodel",
-  "fastapi",
   "uvicorn[standard]",
-  "httpx",
-  "python-jose[cryptography]",
-  "passlib[bcrypt]",
-  "python-multipart",
 ]
 
 dynamic = ["version"]
@@ -57,9 +58,9 @@ dependencies = [
   "mypy",
   "pyflyby",
   "pytest",
+  'alembic',
   "pytest-cov",
   "pytest-mock",
-  "pytest-rich",
   "ruff",
   "black",
 ]
@@ -96,8 +97,7 @@ exclude_lines = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "-ra -q --rich"
-asyncio_mode = "auto"
+addopts = "-ra -q"
 testpaths = ["tests"]
 
 [tool.coverage_rich]

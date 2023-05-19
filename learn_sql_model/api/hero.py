@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from learn_sql_model.api.user import oauth2_scheme
-from learn_sql_model.models import Hero
+from learn_sql_model.models.hero import Hero
 
 hero_router = APIRouter()
 

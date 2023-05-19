@@ -1,10 +1,11 @@
 from typing import Union
 
 from fastapi import FastAPI
-
 import httpx
+
 from learn_sql_model.console import console
-from learn_sql_model.models import Hero, Pet
+from learn_sql_model.models.hero import Hero
+from learn_sql_model.models.pet import Pet
 
 models = Union[Hero, Pet]
 

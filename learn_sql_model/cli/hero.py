@@ -4,7 +4,7 @@ from pydantic_typer import expand_pydantic_args
 from rich.console import Console
 import typer
 
-from learn_sql_model.models import Hero
+from learn_sql_model.models.hero import Hero
 
 hero_app = typer.Typer()
 
