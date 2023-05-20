@@ -30,7 +30,7 @@ learn-sql-model hero get --id 0
 ## Use python to manage Heros
 
 ```python
-from learn_sql_model.models import Hero
+from learn_sql_model.models.hero import Hero
 # create a hero
 bruce = Hero(name="Batman", secret_name="Bruce Wayne")
 bruce.post()

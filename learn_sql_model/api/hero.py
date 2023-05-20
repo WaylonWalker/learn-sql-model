@@ -28,4 +28,4 @@ def post_hero(hero: Hero) -> Hero:
 @hero_router.get("/heros/")
 def get_heros() -> list[Hero]:
     "get all heros"
-    return Hero.get()
+    return Hero().get()

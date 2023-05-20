@@ -17,7 +17,7 @@ def hero():
 @hero_app.command()
 def get(id: int = None) -> Union[Hero, List[Hero]]:
     "get one hero"
-    hero = Hero.get(item_id=id)
+    hero = Hero().get(item_id=id)
     Console().print(hero)
     return hero
 

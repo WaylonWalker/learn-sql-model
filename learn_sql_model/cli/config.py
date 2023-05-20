@@ -2,7 +2,7 @@ from rich.console import Console
 import typer
 
 from learn_sql_model.cli.common import verbose_callback
-from learn_sql_model.config import config as configuration
+from learn_sql_model.config import get_config
 
 config_app = typer.Typer()
 
@@ -26,4 +26,4 @@ def show(
         help="show the log messages",
     ),
 ):
-    Console().print(configuration)
+    Console().print(get_config())

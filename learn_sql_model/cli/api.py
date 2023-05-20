@@ -2,7 +2,7 @@ import typer
 import uvicorn
 
 from learn_sql_model.cli.common import verbose_callback
-from learn_sql_model.config import config
+from learn_sql_model.config import get_config
 
 api_app = typer.Typer()
 
@@ -26,4 +26,4 @@ def run(
         help="show the log messages",
     ),
 ):
-    uvicorn.run("learn_sql_model.api.app:app", port=config.port, log_level="info")
+    uvicorn.run("learn_sql_model.api.app:app", port=get_config().port, log_level="info")
