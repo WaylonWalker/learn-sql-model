@@ -1,9 +1,10 @@
 # SPDX-FileCopyrightText: 2023-present Waylon S. Walker <waylon@waylonwalker.com>
 #
 # SPDX-License-Identifier: MIT
-import sys
 
-if __name__ == '__main__':
-    from .cli import {{python_package}}
+import typer
 
-    sys.exit({{python_package}}())
+from .cli.app import main
+
+if __name__ == "__main__":
+    typer.run(main)
