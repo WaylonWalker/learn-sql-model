@@ -25,6 +25,7 @@ classifiers = [
 ]
 dependencies = [
   "anyconfig",
+  "trogon",
   "fastapi",
   "httpx",
   "passlib[bcrypt]",
