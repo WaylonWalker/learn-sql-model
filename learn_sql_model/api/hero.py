@@ -16,7 +16,7 @@ async def read_items(token: Annotated[str, Depends(oauth2_scheme)]):
 @hero_router.get("/hero/{id}")
 def get_hero(id: int) -> Hero:
     "get one hero"
-    return Hero.get(item_id=id)
+    return Hero().get(id=id)
 
 
 @hero_router.post("/hero/")
