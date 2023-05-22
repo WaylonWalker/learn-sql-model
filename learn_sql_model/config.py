@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, BaseSettings
 from sqlalchemy import create_engine
-from sqlmodel import Session
+from sqlmodel import SQLModel, Session
 
 from learn_sql_model.standard_config import load
 
@@ -24,7 +24,6 @@ class Database:
             self.config = get_config()
         else:
             self.config = config
-        self.create_db_and_tables()
 
     @property
     def engine(self) -> "Engine":
@@ -48,6 +47,9 @@ class Config(BaseSettings):
     @property
     def database(self) -> Database:
         return get_database(config=self)
+
+    def init(self) -> None:
+        SQLModel.metadata.create_all(self.database.engine)
 
 
 def get_database(config: Config = None) -> Database:
