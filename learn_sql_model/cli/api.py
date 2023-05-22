@@ -26,9 +26,4 @@ def run(
         help="show the log messages",
     ),
 ):
-    uvicorn.run(
-        "learn_sql_model.api.app:app",
-        port=get_config().port,
-        log_level="info",
-        reload=True,
-    )
+    uvicorn.run(**get_config().api_server.dict())
