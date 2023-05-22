@@ -1,16 +1,14 @@
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
-from sqlmodel import Field
+from sqlmodel import Field, Relationship
 
 from learn_sql_model.models.fast_model import FastModel
+
+if TYPE_CHECKING:
+    from learn_sql_model.models.hero import Hero
 
 
 class Pet(FastModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = "Jim"
-
-
-#     age: Optional[int] = None
-
-#     hero_id: int = Field(default=None, foreign_key="hero.id")
-#     hero: Optional[Hero] = Relationship(back_populates="pets")
+    hero: "Hero" = Relationship(back_populates="pet")
