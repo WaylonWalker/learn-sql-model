@@ -1,11 +1,18 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
+from sqlmodel import SQLModel
 
 from learn_sql_model.api.user import oauth2_scheme
+from learn_sql_model.config import get_config
 from learn_sql_model.models.hero import Hero
 
 hero_router = APIRouter()
+
+
+@hero_router.on_event("startup")
+def on_startup() -> None:
+    SQLModel.metadata.create_all(get_config().database.engine)
 
 
 @hero_router.get("/items/")
@@ -29,3 +36,8 @@ def post_hero(hero: Hero) -> Hero:
 def get_heros() -> list[Hero]:
     "get all heros"
     return Hero().get()
+    # Alternatively
+    # with get_config().database.session as session:
+    #     statement = select(Hero)
+    #     results = session.exec(statement).all()
+    # return results
