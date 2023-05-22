@@ -26,24 +26,25 @@ class FastModel(SQLModel):
 
         self.pre_post()
 
-        instance = self.__class__(**self.dict())
-
-        with config.database.session() as session:
+        with config.database.session as session:
             session.add(self)
             session.commit()
-        return instance
 
-    def get(self, id: int = None, config: "Config" = None) -> Optional["FastModel"]:
+    def get(
+        self, id: int = None, config: "Config" = None, where=None
+    ) -> Optional["FastModel"]:
         if config is None:
 
             config = get_config()
 
         self.pre_get()
 
-        with config.database.session() as session:
+        with config.database.session as session:
             if id is None:
                 print("get all")
                 statement = select(self.__class__)
+                if where is not None:
+                    statement = statement.where(where).options()
                 results = session.exec(statement).all()
             else:
                 print("get by id")
