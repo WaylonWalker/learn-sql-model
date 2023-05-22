@@ -1,3 +1,5 @@
+import alembic
+from alembic.config import Config
 import typer
 
 from learn_sql_model.cli.common import verbose_callback
@@ -27,9 +29,6 @@ def create_revision(
         prompt=True,
     ),
 ):
-    import alembic
-    # python -m alembic revision --autogenerate -m "New Attribute"
-    from alembic.config import Config
 
     alembic_cfg = Config("alembic.ini")
     alembic.command.revision(
@@ -37,6 +36,21 @@ def create_revision(
         message=message,
         autogenerate=True,
     )
+    alembic.command.upgrade(config=alembic_cfg, revision="head")
+
+
+@model_app.command()
+def checkout(
+    verbose: bool = typer.Option(
+        False,
+        callback=verbose_callback,
+        help="show the log messages",
+    ),
+    revision: str = typer.Option("head"),
+):
+
+    alembic_cfg = Config("alembic.ini")
+    alembic.command.upgrade(config=alembic_cfg, revision="head")
 
 
 @model_app.command()
