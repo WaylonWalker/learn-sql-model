@@ -61,6 +61,30 @@ curl -X 'GET' \
   -H 'accept: application/json'
 ```
 
+## Settings Management
+
+config support `.env`, `.env.dev`, `.env.qa`, `.env.prod`.
+
+```.env
+ENV=dev
+DATABASE_URL=sqlite:///db.sqlite
+API_SERVER__PORT=8000
+API_SERVER__RELOAD=False
+API_SERVER__LOG_LEVEL=debug
+```
+
+## Populating the database
+
+```bash
+learn-sql-model hero populate
+```
+
+## Creating new modesl
+
+```bash
+learn-sql-model model create
+```
+
 ## License
 
 `learn-sql-model` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
