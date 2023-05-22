@@ -1,13 +1,20 @@
 from typing import TYPE_CHECKING
 
-from pydantic import BaseSettings
+from pydantic import BaseModel, BaseSettings
 from sqlalchemy import create_engine
-from sqlmodel import SQLModel, Session
+from sqlmodel import Session
 
 from learn_sql_model.standard_config import load
 
 if TYPE_CHECKING:
     from sqlalchemy import Engine
+
+
+class ApiServer(BaseModel):
+    app: str = "learn_sql_model.api.app:app"
+    port: int = 5000
+    reload: bool = True
+    log_level: str = "info"
 
 
 class Database:
@@ -23,24 +30,20 @@ class Database:
     def engine(self) -> "Engine":
         return create_engine(self.config.database_url)
 
+    @property
     def session(self) -> "Session":
         return Session(self.engine)
 
-    def create_db_and_tables(self) -> None:
-        from learn_sql_model.models.hero import Hero
-        from learn_sql_model.models.pet import Pet
-
-        __all__ = [Hero, Pet]
-
-        SQLModel.metadata.create_all(self.engine)
-
 
 class Config(BaseSettings):
+    env: str = "dev"
     database_url: str = "sqlite:///database.db"
-    port: int = 5000
+    api_server: ApiServer = ApiServer()
 
     class Config:
-        env_prefix = "LEARN_SQL_MODEL_"
+        extra = "ignore"
+        env_nested_delimiter = "__"
+        env_file = ".env", ".env.dev", ".env.qa", ".env.prod"
 
     @property
     def database(self) -> Database:
