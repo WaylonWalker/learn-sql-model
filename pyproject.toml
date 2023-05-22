@@ -55,15 +55,15 @@ path = "learn_sql_model/__about__.py"
 
 [tool.hatch.envs.default]
 dependencies = [
+  "black",
   "ipython",
   "mypy",
   "pyflyby",
   "pytest",
-  'alembic',
   "pytest-cov",
   "pytest-mock",
   "ruff",
-  "black",
+  "alembic",
 ]
 [tool.hatch.envs.default.scripts]
 test = "coverage run -m pytest"
