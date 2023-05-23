@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Optional, Union
 
 from pydantic_typer import expand_pydantic_args
 from rich.console import Console
@@ -9,6 +9,7 @@ from learn_sql_model.factories.hero import HeroFactory
 from learn_sql_model.factories.pet import PetFactory
 from learn_sql_model.models.hero import Hero
 from learn_sql_model.models.pet import Pet
+import sys
 
 hero_app = typer.Typer()
 
@@ -21,7 +22,7 @@ def hero():
 @hero_app.command()
 @expand_pydantic_args(typer=True)
 def get(
-    id: int = None,
+    id: Optional[int] = None,
     config: Config = None,
 ) -> Union[Hero, List[Hero]]:
     "get one hero"
@@ -52,12 +53,11 @@ def populate(
     config: Config = None,
 ) -> Hero:
     "read all the heros"
-    config.init()
     if config is None:
         config = Config()
     if config.env == "prod":
         Console().print("populate is not supported in production")
-        return
+        sys.exit(1)
 
     for hero in HeroFactory().batch(n):
         pet = PetFactory().build()

@@ -1,5 +1,7 @@
+from contextvars import ContextVar
 from typing import TYPE_CHECKING
 
+from fastapi import Depends
 from pydantic import BaseModel, BaseSettings
 from sqlalchemy import create_engine
 from sqlmodel import SQLModel, Session
@@ -24,6 +26,13 @@ class Database:
             self.config = get_config()
         else:
             self.config = config
+            self.db_state_default = {
+                "closed": None,
+                "conn": None,
+                "ctx": None,
+                "transactions": None,
+            }
+            self.db_state = ContextVar("db_state", default=self.db_state_default.copy())
 
     @property
     def engine(self) -> "Engine":
@@ -58,6 +67,24 @@ def get_database(config: Config = None) -> Database:
         config = get_config()
 
     return Database(config)
+
+
+async def reset_db_state(config: Config = None) -> None:
+    if config is None:
+        config = get_config()
+    config.database.db._state._state.set(db_state_default.copy())
+    config.database.db._state.reset()
+
+
+def get_db(config: Config = None, reset_db_state=Depends(reset_db_state)):
+    if config is None:
+        config = get_config()
+    try:
+        config.database.db.connect()
+        yield
+    finally:
+        if not config.database.db.is_closed():
+            config.database.db.close()
 
 
 def get_config(overrides: dict = {}) -> Config:

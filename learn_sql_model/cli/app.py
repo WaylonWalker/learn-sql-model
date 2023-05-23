@@ -10,12 +10,12 @@ from learn_sql_model.cli.tui import tui_app
 
 app = typer.Typer(
     name="learn_sql_model",
-    help="A rich terminal report for coveragepy.",
+    help="learn-sql-model cli for managing the project",
 )
-app.add_typer(config_app)
-app.add_typer(tui_app)
-app.add_typer(model_app)
-app.add_typer(api_app)
+app.add_typer(config_app, name="config")
+app.add_typer(tui_app, name="tui")
+app.add_typer(model_app, name="model")
+app.add_typer(api_app, name="api")
 app.add_typer(hero_app, name="hero")
 
 
@@ -36,6 +36,17 @@ def version_callback(value: bool) -> None:
 
         typer.echo(f"{__version__}")
         raise typer.Exit()
+
+
+@app.callback()
+def main(
+    version: bool = typer.Option(
+        False,
+        callback=version_callback,
+        help="show the version of the learn-sql-model package.",
+    ),
+):
+    "configuration cli"
 
 
 @app.command()

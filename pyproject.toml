@@ -57,17 +57,20 @@ path = "learn_sql_model/__about__.py"
 dependencies = [
   "black",
   "ipython",
+  "coverage[toml]",
+  "coverage-rich",
+  "markata",
   "mypy",
   "pyflyby",
   "pytest",
-  "pytest-cov",
   "pytest-mock",
   "ruff",
   "alembic",
 ]
 [tool.hatch.envs.default.scripts]
 test = "coverage run -m pytest"
-cov = "coverage-rich"
+cov = "coverage-rich report"
+test-cov = ['test', 'cov']
 lint = "ruff learn_sql_model"
 format = "black learn_sql_model"
 format-check = "black --check learn_sql_model"
@@ -84,6 +87,7 @@ test-lint = "lint-test"
 python = ["37", "38", "39", "310", "311"]
 
 [tool.coverage.run]
+source=["learn_sql_model"]
 branch = true
 parallel = true
 omit = [

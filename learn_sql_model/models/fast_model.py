@@ -29,6 +29,8 @@ class FastModel(SQLModel):
         with config.database.session as session:
             session.add(self)
             session.commit()
+            session.refresh(self)
+        return
 
     def get(
         self, id: int = None, config: "Config" = None, where=None
@@ -51,6 +53,16 @@ class FastModel(SQLModel):
                 statement = select(self.__class__).where(self.__class__.id == id)
                 results = session.exec(statement).one()
         return results
+
+    def flags(self, config: "Config" = None) -> None:
+        if config is None:
+            config = get_config()
+        flags = []
+        for k, v in self.dict().items():
+            if v:
+                flags.append(f"--{k.replace('_', '-').lower()}")
+                flags.append(v)
+        return flags
 
     # TODO
     # update
