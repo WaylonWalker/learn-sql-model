@@ -7,7 +7,6 @@ from sqlalchemy import create_engine
 from sqlmodel import SQLModel, Session
 
 from learn_sql_model.standard_config import load
-from rich.console import Console
 
 if TYPE_CHECKING:
     from sqlalchemy import Engine
@@ -92,5 +91,4 @@ def get_db(config: Config = None, reset_db_state=Depends(reset_db_state)):
 def get_config(overrides: dict = {}) -> Config:
     raw_config = load("learn_sql_model")
     config = Config(**raw_config, **overrides)
-    Console().print('starting learn-sql-model api with config:', config)
     return config
