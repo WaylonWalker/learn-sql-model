@@ -31,10 +31,6 @@ RUN wget https://github.com/neovim/neovim/releases/download/nightly/nvim.appimag
 
 RUN curl -sS https://starship.rs/install.sh | sh -s -- -y
 RUN curl -L zellij.dev/launch | sh -s -- help
-# RUN curl https://sh.rustup.rs -sSf | sh -s  -- --default-toolchain nightly -y && \
-#     cargo install \
-#     exa \
-#     gitui
 
 RUN python3 -m pip install --upgrade pip && \
     python3 -m pip install pipx && \
