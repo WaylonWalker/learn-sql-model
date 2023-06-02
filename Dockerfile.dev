@@ -1,0 +1,57 @@
+FROM learn-sql-model
+
+ENV DEBIAIN_FRONTEND=noninteractive
+ENV PATH="$PATH:/root/.local/bin:/root/.cargo/bin"
+ENV SHELL=zsh
+ENV USER=root
+
+
+RUN apt update && \
+    apt upgrade -y && \
+    apt install -y \
+    bat \
+    ripgrep \
+    cmake \
+    htop \
+    stow \
+    zsh
+
+
+WORKDIR /root/downloads
+
+RUN wget https://github.com/neovim/neovim/releases/download/nightly/nvim.appimage && \
+    mkdir -p /root/.local/bin && \
+    chmod u+x /root/downloads/nvim.appimage && \
+    /root/downloads/nvim.appimage --appimage-extract && \
+    rm -rf nvim.appimage && \
+    ln -s ~/downloads/squashfs-root/usr/bin/nvim ~/.local/bin/nvim && \
+    cd ~ && \
+    git clone https://github.com/LazyVim/starter ~/.config/nvim && \
+    nvim --headless -c 'quitall'
+
+RUN curl -sS https://starship.rs/install.sh | sh -s -- -y
+RUN curl -L zellij.dev/launch | sh -s -- help
+# RUN curl https://sh.rustup.rs -sSf | sh -s  -- --default-toolchain nightly -y && \
+#     cargo install \
+#     exa \
+#     gitui
+
+RUN python3 -m pip install --upgrade pip && \
+    python3 -m pip install pipx && \
+    python3 -m pip install hatch && \
+    python3 -m pipx install ansible-core && \
+    python3 -m pipx install lolcat && \
+    python3 -m pipx install pyflyby && \
+    python3 -m pipx install rich-cli && \
+    python3 -m pipx install visidata
+
+WORKDIR /app
+
+COPY . .
+RUN python3 -m hatch env create && \
+    python3 -m hatch shell
+
+
+RUN stow bin -t /root/
+
+ENTRYPOINT /tmp/zellij/bootstrap/zellij

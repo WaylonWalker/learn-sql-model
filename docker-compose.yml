@@ -1,0 +1,40 @@
+version: "3.8"
+services:
+  db:
+    image: postgres:14.1-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - db:/var/lib/postgresql/data
+  api:
+    build:
+      dockerfile: Dockerfile
+      tags:
+        - "learn-sql-model"
+    image: learn-sql-model
+    restart: always
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    volumes:
+      - ./:/app
+  cli:
+    build:
+      dockerfile: Dockerfile.dev
+      tags:
+        - "learn-sql-model-dev"
+    image: learn-sql-model-dev
+    depends_on:
+      - db
+      - api
+    restart: always
+    tty: true
+    stdin_open: true
+volumes:
+  db:
+    driver: local
