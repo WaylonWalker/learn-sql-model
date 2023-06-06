@@ -43,7 +43,6 @@ class FastModel(SQLModel):
 
         with config.database.session as session:
             if id is None:
-                print("get all")
                 statement = select(self.__class__)
                 if where is not None:
                     statement = statement.where(where).options()

@@ -1,6 +1,7 @@
 import alembic
-from alembic.config import Config
 import typer
+from alembic.config import Config
+from copier import run_auto
 
 from learn_sql_model.cli.common import verbose_callback
 
@@ -19,13 +20,24 @@ def model(
 
 
 @model_app.command()
-def create_revision(
+def create(
     verbose: bool = typer.Option(
         False,
         callback=verbose_callback,
         help="show the log messages",
     ),
-    message: str = typer.Option(
+    template=Path('templates/model')
+    run_auto(template, Path('.'))
+
+
+@ model_app.command()
+def create_revision(
+    verbose: bool=typer.Option(
+        False,
+        callback=verbose_callback,
+        help="show the log messages",
+    ),
+    message: str=typer.Option(
         prompt=True,
     ),
 ):
@@ -39,23 +51,23 @@ def create_revision(
     alembic.command.upgrade(config=alembic_cfg, revision="head")
 
 
-@model_app.command()
+@ model_app.command()
 def checkout(
-    verbose: bool = typer.Option(
+    verbose: bool=typer.Option(
         False,
         callback=verbose_callback,
         help="show the log messages",
     ),
-    revision: str = typer.Option("head"),
+    revision: str=typer.Option("head"),
 ):
 
     alembic_cfg = Config("alembic.ini")
     alembic.command.upgrade(config=alembic_cfg, revision="head")
 
 
-@model_app.command()
+@ model_app.command()
 def populate(
-    verbose: bool = typer.Option(
+    verbose: bool=typer.Option(
         False,
         callback=verbose_callback,
         help="show the log messages",

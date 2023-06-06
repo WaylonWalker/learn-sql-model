@@ -1,0 +1,7 @@
+_min_copier_version: v6.0.0b0
+_exclude:
+  - README.md
+  - .git
+  - copier.yml
+name:
+  type: str

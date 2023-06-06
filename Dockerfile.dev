@@ -1,9 +1,17 @@
 FROM python:3.10
 
 ENV DEBIAIN_FRONTEND=noninteractive
-ENV PATH="$PATH:/root/.local/bin:/root/.cargo/bin"
+ENV PATH="$PATH:/home/smoke/.local/bin:/home/smoke/.cargo/bin"
 ENV SHELL=zsh
-ENV USER=root
+ENV USER=smoke
+ARG SMOKE_UID=1000
+ARG SMOKE_GID=1000
+
+RUN groupadd -f -g ${SMOKE_GID} smoke && \
+    useradd -d /home/smoke -s /bin/bash -g ${SMOKE_GID} -u ${SMOKE_UID} smoke
+RUN mkdir /home/smoke && chown -R smoke:smoke /home/smoke && mkdir /src && chown smoke:smoke /src
+WORKDIR /home/smoke
+
 
 
 RUN apt update && \
@@ -16,18 +24,20 @@ RUN apt update && \
     stow \
     zsh
 
-
-WORKDIR /root/downloads
+USER smoke
+WORKDIR /home/smoke/downloads
 
 RUN wget https://github.com/neovim/neovim/releases/download/nightly/nvim.appimage && \
-    mkdir -p /root/.local/bin && \
-    chmod u+x /root/downloads/nvim.appimage && \
-    /root/downloads/nvim.appimage --appimage-extract && \
+    mkdir -p /home/smoke/.local/bin && \
+    chmod u+x /home/smoke/downloads/nvim.appimage && \
+    /home/smoke/downloads/nvim.appimage --appimage-extract && \
     rm -rf nvim.appimage && \
     ln -s ~/downloads/squashfs-root/usr/bin/nvim ~/.local/bin/nvim && \
     cd ~ && \
     git clone https://github.com/LazyVim/starter ~/.config/nvim && \
     nvim --headless -c 'quitall'
+
+USER root
 
 RUN curl -sS https://starship.rs/install.sh | sh -s -- -y
 RUN curl -L zellij.dev/launch | sh -s -- help
@@ -43,6 +53,8 @@ RUN python3 -m pip install --upgrade pip && \
 
 WORKDIR /app
 
+USER smoke
+
 ## DUPLICATE from Dockerfile
 ## building FROM learn-sql-model will cause the cache to bust for every
 ## change, it needs to come after the dev installs.
@@ -54,7 +66,7 @@ COPY . .
 RUN python3 -m hatch env create && \
     python3 -m hatch shell
 
-RUN stow bin -t /root/
+RUN stow bin -t /home/smoke/
 
 COPY .env.dev.docker /app/.env.dev
 
