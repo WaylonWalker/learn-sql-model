@@ -25,16 +25,19 @@ classifiers = [
 ]
 dependencies = [
   "anyconfig",
-  "trogon",
+  "engorgio",
   "fastapi",
   "httpx",
   "passlib[bcrypt]",
   "polyfactory",
+  "psycopg2",
   "python-jose[cryptography]",
   "python-multipart",
   "rich",
   "sqlmodel",
   "textual",
+  "toml",
+  "trogon",
   "typer",
   "uvicorn[standard]",
 ]
@@ -49,6 +52,7 @@ Changelog = "https://github.com/waylonwalker/learn-sql-model"
 
 [project.scripts]
 learn-sql-model = "learn_sql_model.cli.app:app"
+lsm = "learn_sql_model.cli.app:app"
 
 [tool.hatch.version]
 path = "learn_sql_model/__about__.py"
@@ -82,6 +86,7 @@ lint-test = [
  "cov",
 ]
 test-lint = "lint-test"
+api = "learn-sql-model api run"
 
 [[tool.hatch.envs.test.matrix]]
 python = ["37", "38", "39", "310", "311"]

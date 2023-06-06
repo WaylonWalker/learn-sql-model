@@ -1,15 +1,14 @@
+import sys
 from typing import List, Optional, Union
 
-from pydantic_typer import expand_pydantic_args
+from engorgio import engorgio
 from rich.console import Console
 import typer
 
-from learn_sql_model.config import Config
+from learn_sql_model.config import Config, get_config
 from learn_sql_model.factories.hero import HeroFactory
 from learn_sql_model.factories.pet import PetFactory
-from learn_sql_model.models.hero import Hero
-from learn_sql_model.models.pet import Pet
-import sys
+from learn_sql_model.models.hero import Hero, HeroCreate
 
 hero_app = typer.Typer()
 
@@ -20,9 +19,9 @@ def hero():
 
 
 @hero_app.command()
-@expand_pydantic_args(typer=True)
+@engorgio(typer=True)
 def get(
-    id: Optional[int] = None,
+    id: Optional[int] = typer.Argument(default=None),
     config: Config = None,
 ) -> Union[Hero, List[Hero]]:
     "get one hero"
@@ -33,28 +32,36 @@ def get(
 
 
 @hero_app.command()
-@expand_pydantic_args(typer=True)
+@engorgio(typer=True)
+def list(
+    config: Config = None,
+) -> Union[Hero, List[Hero]]:
+    "get one hero"
+    hero = Hero().get()
+    Console().print(hero)
+    return hero
+
+
+@hero_app.command()
+@engorgio(typer=True)
 def create(
-    hero: Hero,
-    pet: Pet = None,
+    hero: HeroCreate,
     config: Config = None,
 ) -> Hero:
     "read all the heros"
     config.init()
-    hero.pet = pet
     hero = hero.post(config=config)
     Console().print(hero)
 
 
 @hero_app.command()
-@expand_pydantic_args(typer=True)
+@engorgio(typer=True)
 def populate(
+    hero: Hero,
     n: int = 10,
-    config: Config = None,
 ) -> Hero:
     "read all the heros"
-    if config is None:
-        config = Config()
+    config = get_config()
     if config.env == "prod":
         Console().print("populate is not supported in production")
         sys.exit(1)

@@ -35,6 +35,8 @@ services:
     restart: always
     tty: true
     stdin_open: true
+    volumes:
+      - ./:/app
 volumes:
   db:
     driver: local

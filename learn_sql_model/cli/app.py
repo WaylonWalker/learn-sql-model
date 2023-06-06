@@ -5,16 +5,14 @@ from typer.main import get_group
 from learn_sql_model.cli.api import api_app
 from learn_sql_model.cli.config import config_app
 from learn_sql_model.cli.hero import hero_app
-from learn_sql_model.cli.model import model_app
-from learn_sql_model.cli.tui import tui_app
 
 app = typer.Typer(
     name="learn_sql_model",
     help="learn-sql-model cli for managing the project",
 )
 app.add_typer(config_app, name="config")
-app.add_typer(tui_app, name="tui")
-app.add_typer(model_app, name="model")
+# app.add_typer(tui_app, name="tui")
+# app.add_typer(model_app, name="model")
 app.add_typer(api_app, name="api")
 app.add_typer(hero_app, name="hero")
 

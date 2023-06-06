@@ -9,6 +9,19 @@ pip install hatch
 hatch shell
 ```
 
+## Development with Docker
+
+```console
+docker compose build
+docker compose up -d
+```
+
+To attach to the cli.
+
+```console
+docker attach learn-sql-model-cli-1
+```
+
 ## Start the Server
 
 ```console

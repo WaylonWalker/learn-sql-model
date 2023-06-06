@@ -1,0 +1,48 @@
+FROM learn-sql-model
+
+ENV DEBIAIN_FRONTEND=noninteractive
+ENV PATH="$PATH:/root/.local/bin:/root/.cargo/bin"
+ENV SHELL=zsh
+ENV USER=root
+
+
+RUN apt update && \
+    apt upgrade -y && \
+    apt install -y \
+    cmake \
+    htop \
+    stow \
+    zsh
+
+
+WORKDIR /root/downloads
+
+RUN wget https://github.com/neovim/neovim/releases/download/nightly/nvim.appimage && \
+    mkdir -p /root/.local/bin && \
+    chmod u+x /root/downloads/nvim.appimage && \
+    /root/downloads/nvim.appimage --appimage-extract && \
+    rm -rf nvim.appimage && \
+    ln -s ~/downloads/squashfs-root/usr/bin/nvim ~/.local/bin/nvim && \
+    cd ~ && \
+    git clone https://github.com/LazyVim/starter ~/.config/nvim && \
+    nvim --headless -c 'quitall'
+
+RUN curl https://sh.rustup.rs -sSf | sh -s  -- --default-toolchain nightly -y && \
+    cargo install \
+    bat \
+    exa \
+    gitui \
+    ripgrep \
+    starship \
+    zellij
+
+RUN python3 -m pip install --upgrade pip && \
+    python3 -m pip install ansible-core && \
+    python3 -m pip install lolcat && \
+    python3 -m pip install pyflyby && \
+    python3 -m pip install rich-cli && \
+    python3 -m pip install visidata
+
+WORKDIR /app
+
+ENTRYPOINT zellij

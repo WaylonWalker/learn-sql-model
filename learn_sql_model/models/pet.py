@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional, TYPE_CHECKING
 
 from sqlmodel import Field, Relationship
@@ -11,4 +12,5 @@ if TYPE_CHECKING:
 class Pet(FastModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = "Jim"
+    birthday: Optional[datetime] = None
     hero: "Hero" = Relationship(back_populates="pet")

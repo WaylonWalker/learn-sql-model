@@ -11,8 +11,8 @@ hero_router = APIRouter()
 
 
 @hero_router.on_event("startup")
-def on_startup(config: Config = Depends(get_config)) -> None:
-    SQLModel.metadata.create_all(config.database.engine)
+def on_startup() -> None:
+    SQLModel.metadata.create_all(get_config().database.engine)
 
 
 @hero_router.get("/items/")
@@ -22,6 +22,12 @@ async def read_items(token: Annotated[str, Depends(oauth2_scheme)]):
 
 @hero_router.get("/hero/{id}")
 def get_hero(id: int, config: Config = Depends(get_config)) -> Hero:
+    "get one hero"
+    return Hero().get(id=id, config=config)
+
+
+@hero_router.get("/h/{id}")
+def get_h(id: int, config: Config = Depends(get_config)) -> Hero:
     "get one hero"
     return Hero().get(id=id, config=config)
 

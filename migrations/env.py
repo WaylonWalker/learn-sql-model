@@ -4,6 +4,7 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 from sqlmodel import SQLModel
 
+from learn_sql_model.config import get_config
 from learn_sql_model.models.hero import Hero
 from learn_sql_model.models.pet import Pet
 
@@ -48,7 +49,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    url = get_config().database_url
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -78,7 +79,7 @@ def run_migrations_online() -> None:
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
-            render_as_batch=True,
+            render_as_batch=False,
             version_table=f'{config.get_main_option("project")}_alembic_version',
         )
 

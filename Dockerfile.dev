@@ -1,4 +1,4 @@
-FROM learn-sql-model
+FROM python:3.10
 
 ENV DEBIAIN_FRONTEND=noninteractive
 ENV PATH="$PATH:/root/.local/bin:/root/.cargo/bin"
@@ -43,11 +43,20 @@ RUN python3 -m pip install --upgrade pip && \
 
 WORKDIR /app
 
+## DUPLICATE from Dockerfile
+## building FROM learn-sql-model will cause the cache to bust for every
+## change, it needs to come after the dev installs.
+COPY pyproject.toml /app
+COPY learn_sql_model/__about__.py /app/learn_sql_model/__about__.py
+COPY README.md /app
+RUN pip3 install .
 COPY . .
 RUN python3 -m hatch env create && \
     python3 -m hatch shell
 
-
 RUN stow bin -t /root/
+
+COPY .env.dev.docker /app/.env.dev
+
 
 ENTRYPOINT /tmp/zellij/bootstrap/zellij
