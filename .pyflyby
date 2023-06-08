@@ -1,19 +1,20 @@
-# from learn_sql_model.config import config
+
+from learn_sql_model.api.websocket_connection_manager import manager
 from learn_sql_model.config import Config
 from learn_sql_model.config import get_config
-from learn_sql_model.database import get_database
 from learn_sql_model.console import console
-
-# models
-
-from learn_sql_model.models.fast_model import FastModel
-
-from learn_sql_model.models.hero import Hero
-from learn_sql_model.models.hero import HeroCreate
-from learn_sql_model.models.hero import HeroRead
-from learn_sql_model.models.hero import HeroUpdate
-from learn_sql_model.models.hero import HeroDelete
-
+from learn_sql_model.database import get_database
 from learn_sql_model.factories.hero import HeroFactory
 from learn_sql_model.factories.pet import PetFactory
+from learn_sql_model.models.fast_model import FastModel
+from learn_sql_model.models.hero import Hero
+from learn_sql_model.models.hero import HeroCreate
+from learn_sql_model.models.hero import HeroDelete
+from learn_sql_model.models.hero import HeroRead
+from learn_sql_model.models.hero import HeroUpdate
+from learn_sql_model.models.new import new
+from learn_sql_model.models.new import newCreate
+from learn_sql_model.models.new import newDelete
+from learn_sql_model.models.new import newRead
+from learn_sql_model.models.new import newUpdate
 from learn_sql_model.models.pet import Pet

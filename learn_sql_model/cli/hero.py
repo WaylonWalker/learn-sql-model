@@ -2,6 +2,7 @@ import sys
 from typing import List, Optional, Union
 
 from engorgio import engorgio
+import httpx
 from rich.console import Console
 import typer
 
@@ -58,17 +59,17 @@ def create(
     config: Config = None,
 ) -> Hero:
     "read all the heros"
-    # config.init()
-    hero = hero.post(config=config)
-    Console().print(hero)
-    return hero
-    # config.init()
-    # with Session(config.database.engine) as session:
-    #     db_hero = Hero.from_orm(hero)
-    #     session.add(db_hero)
-    #     session.commit()
-    #     session.refresh(db_hero)
-    #     return db_hero
+
+    r = httpx.post(
+        f"{config.api_client.url}/hero/",
+        json=hero.dict(),
+    )
+    if r.status_code != 200:
+        raise RuntimeError(f"{r.status_code}:\n {r.text}")
+
+    # hero = hero.post(config=config)
+    # Console().print(hero)
+    # return hero
 
 
 @hero_app.command()
@@ -78,9 +79,12 @@ def update(
     config: Config = None,
 ) -> Hero:
     "read all the heros"
-    hero = hero.update(config=config)
-    Console().print(hero)
-    return hero
+    r = httpx.patch(
+        f"{config.api_client.url}/hero/",
+        json=hero.dict(),
+    )
+    if r.status_code != 200:
+        raise RuntimeError(f"{r.status_code}:\n {r.text}")
 
 
 @hero_app.command()
@@ -90,10 +94,11 @@ def delete(
     config: Config = None,
 ) -> Hero:
     "read all the heros"
-    # config.init()
-    hero = hero.delete(config=config)
-    return hero
-    # Console().print(hero)
+    r = httpx.delete(
+        f"{config.api_client.url}/hero/{hero.id}",
+    )
+    if r.status_code != 200:
+        raise RuntimeError(f"{r.status_code}:\n {r.text}")
 
 
 @hero_app.command()

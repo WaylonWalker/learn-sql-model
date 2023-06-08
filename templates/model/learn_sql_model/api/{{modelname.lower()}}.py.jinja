@@ -1,0 +1,45 @@
+from typing import Annotated
+
+from fastapi import APIRouter, Depends
+from sqlmodel import SQLModel
+
+from learn_sql_model.api.user import oauth2_scheme
+from learn_sql_model.config import Config, get_config
+from learn_sql_model.models.{{modelname.lower()}} import {{modelname}}
+
+{{modelname.lower()}}_router = APIRouter()
+
+
+@{{modelname.lower()}}_router.on_event("startup")
+def on_startup() -> None:
+    SQLModel.metadata.create_all(get_config().database.engine)
+
+
+@{{modelname.lower()}}_router.get("/items/")
+async def read_items(token: Annotated[str, Depends(oauth2_scheme)]):
+    return {"token": token}
+
+
+@{{modelname.lower()}}_router.get("/{{modelname.lower()}}/{id}")
+def get_{{modelname.lower()}}(id: int, config: Config = Depends(get_config)) -> {{modelname}}:
+    "get one {{modelname.lower()}}"
+    return {{modelname}}().get(id=id, config=config)
+
+
+@{{modelname.lower()}}_router.get("/h/{id}")
+def get_h(id: int, config: Config = Depends(get_config)) -> {{modelname}}:
+    "get one {{modelname.lower()}}"
+    return {{modelname}}().get(id=id, config=config)
+
+
+@{{modelname.lower()}}_router.post("/{{modelname.lower()}}/")
+def post_{{modelname.lower()}}({{modelname.lower()}}: {{modelname}}, config: Config = Depends(get_config)) -> {{modelname.lower()}}:
+    "read all the {{modelname.lower()}}s"
+    {{modelname.lower()}}.post(config=config)
+    return {{modelname.lower()}}
+
+
+@{{modelname.lower()}}_router.get("/{{modelname.lower()}}s/")
+def get_{{modelname.lower()}}s(config: Config = Depends(get_config)) -> list[{{modelname}}]:
+    "get all {{modelname.lower()}}s"
+    return {{modelname}}().get(config=config)

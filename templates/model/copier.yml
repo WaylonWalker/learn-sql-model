@@ -3,5 +3,10 @@ _exclude:
   - README.md
   - .git
   - copier.yml
-name:
+modelname:
   type: str
+
+_tasks:
+  - "cat .pyflyby-{{modelname}} >> .pyflyby"
+  - "sort -u -o .pyflyby .pyflyby"
+  - "rm .pyflyby-{{modelname}}"

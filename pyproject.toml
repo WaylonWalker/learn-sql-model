@@ -24,7 +24,10 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
+"python-socketio[client]",
+"fastapi-socketio",
   "anyconfig",
+  "copier",
   "engorgio",
   "fastapi",
   "httpx",

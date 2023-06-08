@@ -20,6 +20,13 @@ class ApiServer(BaseModel):
     host: str = "0.0.0.0"
 
 
+class ApiClient(BaseModel):
+    host: str = "0.0.0.0"
+    port: int = 5000
+    protocol: str = "http"
+    url: str = f"{protocol}://{host}:{port}"
+
+
 class Database:
     def __init__(self, config: "Config" = None) -> None:
         if config is None:
@@ -48,6 +55,7 @@ class Config(BaseSettings):
     env: str = "dev"
     database_url: str = "sqlite:///database.db"
     api_server: ApiServer = ApiServer()
+    api_client: ApiClient = ApiClient()
 
     class Config:
         extra = "ignore"
