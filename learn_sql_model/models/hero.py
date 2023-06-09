@@ -5,7 +5,7 @@ import httpx
 from pydantic import BaseModel
 from sqlmodel import Field, Relationship, SQLModel, Session, select
 
-from learn_sql_model.config import config, get_session
+from learn_sql_model.config import config, get_config
 from learn_sql_model.models.pet import Pet
 
 
@@ -55,10 +55,12 @@ class HeroRead(HeroBase):
         where=None,
         offset=0,
         limit=None,
-        session: Session = get_session,
+        session: Session = None,
     ) -> Hero:
         # with config.database.session as session:
 
+        if session is None:
+            session = get_config().database.session
         statement = select(Hero)
         if where != "None" and where is not None:
             from sqlmodel import text

@@ -205,3 +205,31 @@ def test_cli_get_404(mocker):
     result = runner.invoke(hero_app, ["get", "--hero-id", "999"])
     assert result.exception.status_code == 404
     assert result.exception.detail == "Hero not found"
+
+
+def test_cli_list(mocker):
+    mocker.patch(
+        "learn_sql_model.config.Database.engine",
+        new_callable=lambda: create_engine(
+            "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
+        ),
+    )
+
+    config = get_config()
+    SQLModel.metadata.create_all(config.database.engine)
+
+    hero_1 = HeroFactory().build(name="Steelman", age=25)
+    hero_2 = HeroFactory().build(name="Hunk", age=52)
+
+    with config.database.session as session:
+        session.add(hero_1)
+        session.add(hero_2)
+        session.commit()
+        session.refresh(hero_1)
+        session.refresh(hero_2)
+    result = runner.invoke(hero_app, ["list"])
+    assert result.exit_code == 0
+    assert f"name='{hero_1.name}'" in result.stdout
+    assert f"secret_name='{hero_1.secret_name}'" in result.stdout
+    assert f"name='{hero_2.name}'" in result.stdout
+    assert f"secret_name='{hero_2.secret_name}'" in result.stdout
