@@ -30,7 +30,6 @@ class ApiClient(BaseModel):
 class Database:
     def __init__(self, config: "Config" = None) -> None:
         if config is None:
-
             self.config = get_config()
         else:
             self.config = config
@@ -71,17 +70,26 @@ class Config(BaseSettings):
 
 
 def get_database(config: Config = None) -> Database:
-
     if config is None:
         config = get_config()
-
     return Database(config)
+
+
+def get_config(overrides: dict = {}) -> Config:
+    raw_config = load("learn_sql_model")
+    config = Config(**raw_config, **overrides)
+    return config
+
+
+def get_session(config: Config = None) -> "Session":
+    with Session(config.database.engine) as session:
+        yield session
 
 
 async def reset_db_state(config: Config = None) -> None:
     if config is None:
         config = get_config()
-    config.database.db._state._state.set(db_state_default.copy())
+    config.database.db._state._state.set(config.database.db_state_default.copy())
     config.database.db._state.reset()
 
 
@@ -96,7 +104,4 @@ def get_db(config: Config = None, reset_db_state=Depends(reset_db_state)):
             config.database.db.close()
 
 
-def get_config(overrides: dict = {}) -> Config:
-    raw_config = load("learn_sql_model")
-    config = Config(**raw_config, **overrides)
-    return config
+config = get_config()

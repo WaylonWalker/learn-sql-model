@@ -12,8 +12,6 @@ RUN groupadd -f -g ${SMOKE_GID} smoke && \
 RUN mkdir /home/smoke && chown -R smoke:smoke /home/smoke && mkdir /src && chown smoke:smoke /src
 WORKDIR /home/smoke
 
-
-
 RUN apt update && \
     apt upgrade -y && \
     apt install -y \

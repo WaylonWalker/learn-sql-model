@@ -77,14 +77,17 @@ dependencies = [
 [tool.hatch.envs.default.scripts]
 test = "coverage run -m pytest"
 cov = "coverage-rich report"
-test-cov = ['test', 'cov']
+cov-erase = "coverage erase"
 lint = "ruff learn_sql_model"
 format = "black learn_sql_model"
 format-check = "black --check learn_sql_model"
+fix_ruff = "ruff --fix learn_sql_model"
+fix = ['format', 'fix_ruff']
 build-docs = "markata build"
 lint-test = [
  "lint",
  "format-check",
+ "cov-erase",
  "test",
  "cov",
 ]

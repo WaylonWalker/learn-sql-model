@@ -18,3 +18,9 @@ def read_heroes(hero: Hero) -> list[Hero]:
 def read_heros() -> list[Hero]:
     "read all the heros"
     return Hero.get()
+
+
+@app.patch("/heros/")
+def update_heros() -> list[Hero]:
+    "read all the heros"
+    return Hero.get()

@@ -1,0 +1,207 @@
+from fastapi.testclient import TestClient
+import pytest
+from sqlalchemy import create_engine
+from sqlmodel import SQLModel, Session, select
+from sqlmodel.pool import StaticPool
+from typer.testing import CliRunner
+
+from learn_sql_model.api.app import app
+from learn_sql_model.config import get_config, get_session
+from learn_sql_model.factories.{{modelname.lower()}} import {{modelname}}Factory
+from learn_sql_model.models.{{modelname.lower()}} import {{modelname}}
+
+runner = CliRunner()
+client = TestClient(app)
+
+
+@pytest.fixture(name="session")
+def session_fixture():
+    engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
+    SQLModel.metadata.create_all(engine)
+    with Session(engine) as session:
+        yield session
+
+
+@pytest.fixture(name="client")
+def client_fixture(session: Session):
+    def get_session_override():
+        return session
+
+    app.dependency_overrides[get_session] = get_session_override
+
+    client = TestClient(app)
+    yield client
+    app.dependency_overrides.clear()
+
+
+def test_api_post(client: TestClient):
+    {{modelname.lower()}} = {{modelname}}Factory().build(name="Steelman", age=25)
+    {{modelname.lower()}}_dict = {{modelname.lower()}}.dict()
+    response = client.post("/{{modelname.lower()}}/", json={"{{modelname.lower()}}": {{modelname.lower()}}_dict})
+    response_{{modelname.lower()}} = {{modelname}}.parse_obj(response.json())
+
+    assert response.status_code == 200
+    assert response_{{modelname.lower()}}.name == "Steelman"
+    assert response_{{modelname.lower()}}.age == 25
+
+
+def test_api_read_{{modelname.lower()}}es(session: Session, client: TestClient):
+    {{modelname.lower()}}_1 = {{modelname}}(name="Deadpond", secret_name="Dive Wilson")
+    {{modelname.lower()}}_2 = {{modelname}}(name="Rusty-Man", secret_name="Tommy Sharp", age=48)
+    session.add({{modelname.lower()}}_1)
+    session.add({{modelname.lower()}}_2)
+    session.commit()
+
+    response = client.get("/{{modelname.lower()}}s/")
+    data = response.json()
+
+    assert response.status_code == 200
+
+    assert len(data) == 2
+    assert data[0]["name"] == {{modelname.lower()}}_1.name
+    assert data[0]["secret_name"] == {{modelname.lower()}}_1.secret_name
+    assert data[0]["age"] == {{modelname.lower()}}_1.age
+    assert data[0]["id"] == {{modelname.lower()}}_1.id
+    assert data[1]["name"] == {{modelname.lower()}}_2.name
+    assert data[1]["secret_name"] == {{modelname.lower()}}_2.secret_name
+    assert data[1]["age"] == {{modelname.lower()}}_2.age
+    assert data[1]["id"] == {{modelname.lower()}}_2.id
+
+
+def test_api_read_{{modelname.lower()}}(session: Session, client: TestClient):
+    {{modelname.lower()}}_1 = {{modelname}}(name="Deadpond", secret_name="Dive Wilson")
+    session.add({{modelname.lower()}}_1)
+    session.commit()
+
+    response = client.get(f"/{{modelname.lower()}}/999")
+    assert response.status_code == 404
+
+
+def test_api_read_{{modelname.lower()}}_404(session: Session, client: TestClient):
+    {{modelname.lower()}}_1 = {{modelname}}(name="Deadpond", secret_name="Dive Wilson")
+    session.add({{modelname.lower()}}_1)
+    session.commit()
+
+    response = client.get(f"/{{modelname.lower()}}/{{{modelname.lower()}}_1.id}")
+    data = response.json()
+
+    assert response.status_code == 200
+    assert data["name"] == {{modelname.lower()}}_1.name
+    assert data["secret_name"] == {{modelname.lower()}}_1.secret_name
+    assert data["age"] == {{modelname.lower()}}_1.age
+    assert data["id"] == {{modelname.lower()}}_1.id
+
+
+def test_api_update_{{modelname.lower()}}(session: Session, client: TestClient):
+    {{modelname.lower()}}_1 = {{modelname}}(name="Deadpond", secret_name="Dive Wilson")
+    session.add({{modelname.lower()}}_1)
+    session.commit()
+
+    response = client.patch(
+        f"/{{modelname.lower()}}/", json={"{{modelname.lower()}}": {"name": "Deadpuddle", "id": {{modelname.lower()}}_1.id}}
+    )
+    data = response.json()
+
+    assert response.status_code == 200
+    assert data["name"] == "Deadpuddle"
+    assert data["secret_name"] == "Dive Wilson"
+    assert data["age"] is None
+    assert data["id"] == {{modelname.lower()}}_1.id
+
+
+def test_api_update_{{modelname.lower()}}_404(session: Session, client: TestClient):
+    {{modelname.lower()}}_1 = {{modelname}}(name="Deadpond", secret_name="Dive Wilson")
+    session.add({{modelname.lower()}}_1)
+    session.commit()
+
+    response = client.patch(f"/{{modelname.lower()}}/", json={"{{modelname.lower()}}": {"name": "Deadpuddle", "id": 999}})
+    assert response.status_code == 404
+
+
+def test_delete_{{modelname.lower()}}(session: Session, client: TestClient):
+    {{modelname.lower()}}_1 = {{modelname}}(name="Deadpond", secret_name="Dive Wilson")
+    session.add({{modelname.lower()}}_1)
+    session.commit()
+
+    response = client.delete(f"/{{modelname.lower()}}/{{{modelname.lower()}}_1.id}")
+
+    {{modelname.lower()}}_in_db = session.get({{modelname}}, {{modelname.lower()}}_1.id)
+
+    assert response.status_code == 200
+
+    assert {{modelname.lower()}}_in_db is None
+
+
+def test_delete_{{modelname.lower()}}_404(session: Session, client: TestClient):
+    {{modelname.lower()}}_1 = {{modelname}}(name="Deadpond", secret_name="Dive Wilson")
+    session.add({{modelname.lower()}}_1)
+    session.commit()
+
+    response = client.delete(f"/{{modelname.lower()}}/999")
+    assert response.status_code == 404
+
+
+def test_config_memory(mocker):
+    mocker.patch(
+        "learn_sql_model.config.Database.engine",
+        new_callable=lambda: create_engine(
+            "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
+        ),
+    )
+    config = get_config()
+    SQLModel.metadata.create_all(config.database.engine)
+    {{modelname.lower()}} = {{modelname}}Factory().build(name="Steelman", age=25)
+    with config.database.session as session:
+        session.add({{modelname.lower()}})
+        session.commit()
+        {{modelname.lower()}} = session.get({{modelname}}, {{modelname.lower()}}.id)
+        {{modelname.lower()}}es = session.exec(select({{modelname}})).all()
+    assert {{modelname.lower()}}.name == "Steelman"
+    assert {{modelname.lower()}}.age == 25
+    assert len({{modelname.lower()}}es) == 1
+
+
+def test_cli_get(mocker):
+    mocker.patch(
+        "learn_sql_model.config.Database.engine",
+        new_callable=lambda: create_engine(
+            "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
+        ),
+    )
+
+    config = get_config()
+    SQLModel.metadata.create_all(config.database.engine)
+
+    {{modelname.lower()}} = {{modelname}}Factory().build(name="Steelman", age=25)
+    with config.database.session as session:
+        session.add({{modelname.lower()}})
+        session.commit()
+        {{modelname.lower()}} = session.get({{modelname}}, {{modelname.lower()}}.id)
+    result = runner.invoke({{modelname.lower()}}_app, ["get", "--{{modelname.lower()}}-id", "1"])
+    assert result.exit_code == 0
+    assert f"name='{{{modelname.lower()}}.name}'" in result.stdout
+    assert f"secret_name='{{{modelname.lower()}}.secret_name}'" in result.stdout
+
+
+def test_cli_get_404(mocker):
+    mocker.patch(
+        "learn_sql_model.config.Database.engine",
+        new_callable=lambda: create_engine(
+            "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
+        ),
+    )
+
+    config = get_config()
+    SQLModel.metadata.create_all(config.database.engine)
+
+    {{modelname.lower()}} = {{modelname}}Factory().build(name="Steelman", age=25)
+    with config.database.session as session:
+        session.add({{modelname.lower()}})
+        session.commit()
+        {{modelname.lower()}} = session.get({{modelname}}, {{modelname.lower()}}.id)
+    result = runner.invoke({{modelname.lower()}}_app, ["get", "--{{modelname.lower()}}-id", "999"])
+    assert result.exception.status_code == 404
+    assert result.exception.detail == "{{modelname}} not found"
+

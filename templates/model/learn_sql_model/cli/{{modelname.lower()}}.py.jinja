@@ -5,9 +5,8 @@ from engorgio import engorgio
 from rich.console import Console
 import typer
 
-from learn_sql_model.config import Config, get_config
+from learn_sql_model.config import get_config
 from learn_sql_model.factories.{{modelname.lower()}} import {{modelname}}Factory
-from learn_sql_model.factories.pet import PetFactory
 from learn_sql_model.models.{{modelname.lower()}} import (
     {{modelname}},
     {{modelname}}Create,
@@ -18,6 +17,8 @@ from learn_sql_model.models.{{modelname.lower()}} import (
 
 {{modelname.lower()}}_app = typer.Typer()
 
+config = get_config()
+
 
 @{{modelname.lower()}}_app.callback()
 def {{modelname.lower()}}():
@@ -27,12 +28,10 @@ def {{modelname.lower()}}():
 @{{modelname.lower()}}_app.command()
 @engorgio(typer=True)
 def get(
-    id: Optional[int] = typer.Argument(default=None),
-    config: Config = None,
-) -> Union[{{modelname}}, List[{{modelname.lower()}}]]:
+    {{modelname.lower()}}_id: Optional[int] = typer.Argument(default=None),
+) -> Union[{{modelname}}, List[{{modelname}}]]:
     "get one {{modelname.lower()}}"
-    config.init()
-    {{modelname.lower()}} = {{modelname}}Read.get(id=id, config=config)
+    {{modelname.lower()}} = {{modelname}}Read.get(id={{modelname.lower()}}_id)
     Console().print({{modelname.lower()}})
     return {{modelname.lower()}}
 
@@ -41,12 +40,11 @@ def get(
 @engorgio(typer=True)
 def list(
     where: Optional[str] = None,
-    config: Config = None,
     offset: int = 0,
     limit: Optional[int] = None,
-) -> Union[{{modelname}}, List[{{modelname.lower()}}]]:
-    "get one {{modelname.lower()}}"
-    {{modelname.lower()}} = {{modelname}}Read.list(config=config, where=where, offset=offset, limit=limit)
+) -> Union[{{modelname}}, List[{{modelname}}]]:
+    "list many {{modelname.lower()}}s"
+    {{modelname.lower()}} = {{modelname}}Read.list(where=where, offset=offset, limit=limit)
     Console().print({{modelname.lower()}})
     return {{modelname.lower()}}
 
@@ -55,53 +53,40 @@ def list(
 @engorgio(typer=True)
 def create(
     {{modelname.lower()}}: {{modelname}}Create,
-    config: Config = None,
 ) -> {{modelname}}:
-    "read all the {{modelname.lower()}}s"
-    # config.init()
-    {{modelname.lower()}} = {{modelname.lower()}}.post(config=config)
-    Console().print({{modelname.lower()}})
-    return {{modelname.lower()}}
+    "create one {{modelname.lower()}}"
+    {{modelname.lower()}}.post()
 
 
 @{{modelname.lower()}}_app.command()
 @engorgio(typer=True)
 def update(
     {{modelname.lower()}}: {{modelname}}Update,
-    config: Config = None,
 ) -> {{modelname}}:
-    "read all the {{modelname.lower()}}s"
-    {{modelname.lower()}} = {{modelname.lower()}}.update(config=config)
-    Console().print({{modelname.lower()}})
-    return {{modelname.lower()}}
+    "update one {{modelname.lower()}}"
+    {{modelname.lower()}}.update()
 
 
 @{{modelname.lower()}}_app.command()
 @engorgio(typer=True)
 def delete(
     {{modelname.lower()}}: {{modelname}}Delete,
-    config: Config = None,
 ) -> {{modelname}}:
-    "read all the {{modelname.lower()}}s"
-    # config.init()
-    {{modelname.lower()}} = {{modelname.lower()}}.delete(config=config)
-    return {{modelname.lower()}}
+    "delete a {{modelname.lower()}} by id"
+    {{modelname.lower()}}.delete()
 
 
 @{{modelname.lower()}}_app.command()
 @engorgio(typer=True)
 def populate(
-    {{modelname.lower()}}: {{modelname}},
     n: int = 10,
 ) -> {{modelname}}:
-    "read all the {{modelname.lower()}}s"
-    config = get_config()
+    "Create n number of {{modelname.lower()}}s"
     if config.env == "prod":
         Console().print("populate is not supported in production")
         sys.exit(1)
 
     for {{modelname.lower()}} in {{modelname}}Factory().batch(n):
-        pet = PetFactory().build()
-        {{modelname.lower()}}.pet = pet
-        Console().print({{modelname.lower()}})
-        {{modelname.lower()}}.post(config=config)
+        {{modelname.lower()}} = {{modelname}}Create(**{{modelname.lower()}}.dict())
+        {{modelname.lower()}}.post()
+

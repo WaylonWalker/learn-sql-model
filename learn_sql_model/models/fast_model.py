@@ -21,7 +21,6 @@ class FastModel(SQLModel):
 
     def post(self, config: "Config" = None) -> None:
         if config is None:
-
             config = get_config()
 
         self.pre_post()
@@ -36,7 +35,6 @@ class FastModel(SQLModel):
         self, id: int = None, config: "Config" = None, where=None
     ) -> Optional["FastModel"]:
         if config is None:
-
             config = get_config()
 
         self.pre_get()

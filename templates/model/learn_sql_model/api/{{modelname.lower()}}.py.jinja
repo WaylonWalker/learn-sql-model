@@ -1,11 +1,9 @@
-from typing import Annotated
+from fastapi import APIRouter, Depends, HTTPException
+from sqlmodel import SQLModel, Session
 
-from fastapi import APIRouter, Depends
-from sqlmodel import SQLModel
-
-from learn_sql_model.api.user import oauth2_scheme
-from learn_sql_model.config import Config, get_config
-from learn_sql_model.models.{{modelname.lower()}} import {{modelname}}
+from learn_sql_model.api.websocket_connection_manager import manager
+from learn_sql_model.config import get_config, get_session
+from learn_sql_model.models.{{modelname.lower()}} import {{modelname}}, {{modelname}}Create, {{modelname}}Read, {{modelname}}Update
 
 {{modelname.lower()}}_router = APIRouter()
 
@@ -15,31 +13,74 @@ def on_startup() -> None:
     SQLModel.metadata.create_all(get_config().database.engine)
 
 
-@{{modelname.lower()}}_router.get("/items/")
-async def read_items(token: Annotated[str, Depends(oauth2_scheme)]):
-    return {"token": token}
-
-
-@{{modelname.lower()}}_router.get("/{{modelname.lower()}}/{id}")
-def get_{{modelname.lower()}}(id: int, config: Config = Depends(get_config)) -> {{modelname}}:
+@{{modelname.lower()}}_router.get("/{{modelname.lower()}}/{{{modelname.lower()}}_id}")
+async def get_{{modelname.lower()}}(
+    *,
+    session: Session = Depends(get_session),
+    {{modelname.lower()}}_id: int,
+) -> {{modelname}}Read:
     "get one {{modelname.lower()}}"
-    return {{modelname}}().get(id=id, config=config)
-
-
-@{{modelname.lower()}}_router.get("/h/{id}")
-def get_h(id: int, config: Config = Depends(get_config)) -> {{modelname}}:
-    "get one {{modelname.lower()}}"
-    return {{modelname}}().get(id=id, config=config)
-
-
-@{{modelname.lower()}}_router.post("/{{modelname.lower()}}/")
-def post_{{modelname.lower()}}({{modelname.lower()}}: {{modelname}}, config: Config = Depends(get_config)) -> {{modelname.lower()}}:
-    "read all the {{modelname.lower()}}s"
-    {{modelname.lower()}}.post(config=config)
+    {{modelname.lower()}} = session.get({{modelname}}, {{modelname.lower()}}_id)
+    if not {{modelname.lower()}}:
+        raise HTTPException(status_code=404, detail="{{modelname}} not found")
     return {{modelname.lower()}}
 
 
+@{{modelname.lower()}}_router.post("/{{modelname.lower()}}/")
+async def post_{{modelname.lower()}}(
+    *,
+    session: Session = Depends(get_session),
+    {{modelname.lower()}}: {{modelname}}Create,
+) -> {{modelname}}Read:
+    "read all the {{modelname.lower()}}s"
+    db_{{modelname.lower()}} = {{modelname}}.from_orm({{modelname.lower()}})
+    session.add(db_{{modelname.lower()}})
+    session.commit()
+    session.refresh(db_{{modelname.lower()}})
+    await manager.broadcast({{{modelname.lower()}}.json()}, id=1)
+    return db_{{modelname.lower()}}
+
+
+@{{modelname.lower()}}_router.patch("/{{modelname.lower()}}/")
+async def patch_{{modelname.lower()}}(
+    *,
+    session: Session = Depends(get_session),
+    {{modelname.lower()}}: {{modelname}}Update,
+) -> {{modelname}}Read:
+    "read all the {{modelname.lower()}}s"
+    db_{{modelname.lower()}} = session.get({{modelname}}, {{modelname.lower()}}.id)
+    if not db_{{modelname.lower()}}:
+        raise HTTPException(status_code=404, detail="{{modelname}} not found")
+    for key, value in {{modelname.lower()}}.dict(exclude_unset=True).items():
+        setattr(db_{{modelname.lower()}}, key, value)
+    session.add(db_{{modelname.lower()}})
+    session.commit()
+    session.refresh(db_{{modelname.lower()}})
+    await manager.broadcast({{{modelname.lower()}}.json()}, id=1)
+    return db_{{modelname.lower()}}
+
+
+@{{modelname.lower()}}_router.delete("/{{modelname.lower()}}/{{{modelname.lower()}}_id}")
+async def delete_{{modelname.lower()}}(
+    *,
+    session: Session = Depends(get_session),
+    {{modelname.lower()}}_id: int,
+):
+    "read all the {{modelname.lower()}}s"
+    {{modelname.lower()}} = session.get({{modelname}}, {{modelname.lower()}}_id)
+    if not {{modelname.lower()}}:
+        raise HTTPException(status_code=404, detail="{{modelname}} not found")
+    session.delete({{modelname.lower()}})
+    session.commit()
+    await manager.broadcast(f"deleted {{modelname.lower()}} {{{modelname.lower()}}_id}", id=1)
+    return {"ok": True}
+
+
 @{{modelname.lower()}}_router.get("/{{modelname.lower()}}s/")
-def get_{{modelname.lower()}}s(config: Config = Depends(get_config)) -> list[{{modelname}}]:
+async def get_{{modelname.lower()}}s(
+    *,
+    session: Session = Depends(get_session),
+) -> list[{{modelname}}]:
     "get all {{modelname.lower()}}s"
-    return {{modelname}}().get(config=config)
+    return {{modelname}}Read.list(session=session)
+

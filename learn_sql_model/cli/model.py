@@ -44,7 +44,6 @@ def create_revision(
         prompt=True,
     ),
 ):
-
     alembic_cfg = Config("alembic.ini")
     alembic.command.revision(
         config=alembic_cfg,
@@ -63,7 +62,6 @@ def checkout(
     ),
     revision: str = typer.Option("head"),
 ):
-
     alembic_cfg = Config("alembic.ini")
     alembic.command.upgrade(config=alembic_cfg, revision="head")
 

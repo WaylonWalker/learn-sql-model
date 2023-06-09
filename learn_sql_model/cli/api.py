@@ -1,3 +1,4 @@
+import httpx
 from rich.console import Console
 import typer
 import uvicorn
@@ -38,15 +39,11 @@ def status(
         help="show the log messages",
     ),
 ):
-    import httpx
-
     config = get_config()
-    host = config.api_server.host
-    port = config.api_server.port
-    url = f"http://{host}:{port}/docs"
+    url = config.api_client.url
 
     try:
-        r = httpx.get(url)
+        r = httpx.get(url + "/docs")
         if r.status_code == 200:
             Console().print(f"[green]API: ([gold1]{url}[green]) is running")
         else:
@@ -59,7 +56,7 @@ def status(
             Console().print(
                 f"[green]database: ([gold1]{config.database.engine}[green]) is running"
             )
-    except Exception as e:
+    except Exception:
         Console().print(
             f"[red]database: ([gold1]{config.database.engine}[red]) is not running"
         )

@@ -2,6 +2,7 @@
 from learn_sql_model.api.websocket_connection_manager import manager
 from learn_sql_model.config import Config
 from learn_sql_model.config import get_config
+from learn_sql_model.config import get_session
 from learn_sql_model.console import console
 from learn_sql_model.database import get_database
 from learn_sql_model.factories.hero import HeroFactory
