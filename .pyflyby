@@ -19,3 +19,6 @@ from learn_sql_model.models.new import newDelete
 from learn_sql_model.models.new import newRead
 from learn_sql_model.models.new import newUpdate
 from learn_sql_model.models.pet import Pet
+from learn_sql_model.cli.hero import hero_app
+from learn_sql_model.api.hero import hero_router
+

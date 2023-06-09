@@ -6,6 +6,7 @@ from sqlmodel.pool import StaticPool
 from typer.testing import CliRunner
 
 from learn_sql_model.api.app import app
+from learn_sql_model.cli.hero import hero_app
 from learn_sql_model.config import get_config, get_session
 from learn_sql_model.factories.hero import HeroFactory
 from learn_sql_model.models.hero import Hero
