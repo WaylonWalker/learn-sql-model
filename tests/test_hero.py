@@ -9,7 +9,7 @@ from learn_sql_model.api.app import app
 from learn_sql_model.cli.hero import hero_app
 from learn_sql_model.config import get_config, get_session
 from learn_sql_model.factories.hero import HeroFactory
-from learn_sql_model.models.hero import Hero
+from learn_sql_model.models.hero import Hero, HeroCreate, HeroRead
 
 runner = CliRunner()
 client = TestClient(app)
@@ -76,15 +76,6 @@ def test_api_read_hero(session: Session, client: TestClient):
     session.add(hero_1)
     session.commit()
 
-    response = client.get(f"/hero/999")
-    assert response.status_code == 404
-
-
-def test_api_read_hero_404(session: Session, client: TestClient):
-    hero_1 = Hero(name="Deadpond", secret_name="Dive Wilson")
-    session.add(hero_1)
-    session.commit()
-
     response = client.get(f"/hero/{hero_1.id}")
     data = response.json()
 
@@ -93,6 +84,15 @@ def test_api_read_hero_404(session: Session, client: TestClient):
     assert data["secret_name"] == hero_1.secret_name
     assert data["age"] == hero_1.age
     assert data["id"] == hero_1.id
+
+
+def test_api_read_hero_404(session: Session, client: TestClient):
+    hero_1 = Hero(name="Deadpond", secret_name="Dive Wilson")
+    session.add(hero_1)
+    session.commit()
+
+    response = client.get(f"/hero/999")
+    assert response.status_code == 404
 
 
 def test_api_update_hero(session: Session, client: TestClient):
@@ -233,3 +233,46 @@ def test_cli_list(mocker):
     assert f"secret_name='{hero_1.secret_name}'" in result.stdout
     assert f"name='{hero_2.name}'" in result.stdout
     assert f"secret_name='{hero_2.secret_name}'" in result.stdout
+
+
+def test_model_post(mocker):
+    patch_httpx_post = mocker.patch(
+        "httpx.post", return_value=mocker.Mock(status_code=200)
+    )
+    hero = HeroFactory().build(name="Steelman", age=25)
+    hero_create = HeroCreate(**hero.dict())
+    hero_create.post()
+    assert patch_httpx_post.call_count == 1
+
+
+def test_model_post_500(mocker):
+    patch_httpx_post = mocker.patch(
+        "httpx.post", return_value=mocker.Mock(status_code=500)
+    )
+    hero = HeroFactory().build(name="Steelman", age=25)
+    hero_create = HeroCreate(**hero.dict())
+    with pytest.raises(RuntimeError):
+        hero_create.post()
+    assert patch_httpx_post.call_count == 1
+
+
+def test_model_read_hero(mocker, session: Session, client: TestClient):
+    mocker.patch(
+        "learn_sql_model.config.Database.engine",
+        new_callable=lambda: create_engine(
+            "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
+        ),
+    )
+
+    config = get_config()
+    SQLModel.metadata.create_all(config.database.engine)
+
+    hero = Hero(name="Deadpond", secret_name="Dive Wilson")
+    session = config.database.session
+    session.add(hero)
+    session.commit()
+    session.refresh(hero)
+
+    hero_read = HeroRead.get(id=hero.id)
+    assert hero_read.name == "Deadpond"
+    assert hero_read.secret_name == "Dive Wilson"

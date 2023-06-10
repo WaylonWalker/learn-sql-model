@@ -81,7 +81,8 @@ def get_config(overrides: dict = {}) -> Config:
     return config
 
 
-def get_session(config: Config = None) -> "Session":
+def get_session() -> "Session":
+    config = get_config()
     with Session(config.database.engine) as session:
         yield session
 
