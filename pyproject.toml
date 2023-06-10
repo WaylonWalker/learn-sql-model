@@ -26,6 +26,9 @@ classifiers = [
 dependencies = [
 "python-socketio[client]",
 "fastapi-socketio",
+"psycopg2-binary",
+'pygame',
+'black',
   "anyconfig",
   "copier",
   "engorgio",

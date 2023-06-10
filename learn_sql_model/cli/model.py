@@ -2,7 +2,7 @@ from pathlib import Path
 
 import alembic
 from alembic.config import Config
-from copier import run_auto
+import copier
 import typer
 
 from learn_sql_model.cli.common import verbose_callback
@@ -30,7 +30,7 @@ def create(
     ),
 ):
     template = Path("templates/model")
-    run_auto(str(template), ".")
+    copier.copy(str(template), ".")
 
 
 @model_app.command()
