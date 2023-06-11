@@ -11,8 +11,10 @@ import atexit
 import pygame
 import typer
 from typer import Typer
+from websocket import create_connection
 
-from learn_sql_model.models.hero import Hero, HeroCreate, HeroDelete, HeroUpdate
+from learn_sql_model.config import get_config
+from learn_sql_model.models.hero import Hero, HeroCreate, HeroDelete, HeroUpdate, Heros
 
 speed = 10
 
@@ -20,13 +22,17 @@ pygame.font.init()  # you have to call this at the start,
 # if you want to use this module.
 my_font = pygame.font.SysFont("Comic Sans MS", 30)
 
+config = get_config()
+
 
 class Client:
     def __init__(self, name, secret_name):
         self.hero = Hero(name=name, secret_name=secret_name, x=400, y=300, size=50)
         self.hero = HeroCreate(**self.hero.dict()).post()
+        pygame.init()
 
         self.screen = pygame.display.set_mode((800, 600))
+        pygame.display.set_caption("Learn SQL Model")
         self.clock = pygame.time.Clock()
         self.running = True
         self.screen.fill((0, 0, 0))
@@ -35,11 +41,18 @@ class Client:
         self.moving_down = False
         self.moving_left = False
         self.moving_right = False
+        self.ws = create_connection(
+            f"ws://{config.api_client.host}:{config.api_client.port}/wsecho"
+        )
 
-        self.others = [hero for hero in Heros.list() if hero.id != self.hero.id]
         self.ticks = 0
 
         atexit.register(self.quit)
+
+    @property
+    def others(self):
+        raw_heros = self.ws.recv()
+        return Heros.parse_raw(raw_heros)
 
     def run(self):
         while self.running:
@@ -67,13 +80,12 @@ class Client:
             HeroUpdate(
                 **{k: v for k, v in self.hero.dict().items() if v is not None}
             ).update()
-            self.others = [hero for hero in Heros.list() if hero.id != self.hero.id]
 
     def render(self):
         # Console().print(self.hero)
         self.screen.fill((0, 0, 0))
 
-        for other in self.others:
+        for other in self.others.heros:
             pygame.draw.circle(self.screen, (255, 0, 0), (other.x, other.y), other.size)
             self.screen.blit(
                 my_font.render(other.name, False, (255, 255, 255), 1),
