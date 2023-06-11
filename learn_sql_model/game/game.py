@@ -12,13 +12,7 @@ import pygame
 import typer
 from typer import Typer
 
-from learn_sql_model.models.hero import (
-    Hero,
-    HeroCreate,
-    HeroDelete,
-    HeroRead,
-    HeroUpdate,
-)
+from learn_sql_model.models.hero import Hero, HeroCreate, HeroDelete, HeroUpdate
 
 speed = 10
 
@@ -42,7 +36,7 @@ class Client:
         self.moving_left = False
         self.moving_right = False
 
-        self.others = [hero for hero in HeroRead.list() if hero.id != self.hero.id]
+        self.others = [hero for hero in Heros.list() if hero.id != self.hero.id]
         self.ticks = 0
 
         atexit.register(self.quit)
@@ -73,7 +67,7 @@ class Client:
             HeroUpdate(
                 **{k: v for k, v in self.hero.dict().items() if v is not None}
             ).update()
-            self.others = [hero for hero in HeroRead.list() if hero.id != self.hero.id]
+            self.others = [hero for hero in Heros.list() if hero.id != self.hero.id]
 
     def render(self):
         # Console().print(self.hero)

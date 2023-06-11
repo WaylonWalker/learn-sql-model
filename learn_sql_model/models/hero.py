@@ -54,6 +54,10 @@ class HeroRead(HeroBase):
                 raise HTTPException(status_code=404, detail="Hero not found")
         return hero
 
+
+class Heros(BaseModel):
+    heros: list[Hero]
+
     @classmethod
     def list(
         self,
@@ -64,17 +68,23 @@ class HeroRead(HeroBase):
     ) -> Hero:
         # with config.database.session as session:
 
-        if session is None:
-            engine = get_config().database.engine
-        with Session(engine) as session:
+        def get_heros(session, where, offset, limit):
             statement = select(Hero)
             if where != "None" and where is not None:
                 from sqlmodel import text
 
                 statement = statement.where(text(where))
             statement = statement.offset(offset).limit(limit)
-            heroes = session.exec(statement).all()
-        return heroes
+            heros = session.exec(statement).all()
+            return Heros(heros=heros)
+
+        if session is None:
+            engine = get_config().database.engine
+            with Session(engine) as session:
+                heros = get_heros(session, where, offset, limit)
+            return heros
+
+        return get_heros(session, where, offset, limit)
 
 
 class HeroUpdate(SQLModel):

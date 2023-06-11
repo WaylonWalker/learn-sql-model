@@ -1,7 +1,10 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
+from sqlmodel import Session
 
 from learn_sql_model.api.websocket_connection_manager import manager
+from learn_sql_model.config import get_session
+from learn_sql_model.models.hero import Heros
 
 web_socket_router = APIRouter()
 
@@ -70,3 +73,14 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         manager.disconnect(websocket, id)
         await manager.broadcast(f"Client #{id} left the chat", id)
+
+
+@web_socket_router.websocket("/wsecho")
+async def websocket_endpoint(
+    websocket: WebSocket,
+    session: Session = Depends(get_session),
+):
+    await websocket.accept()
+    while True:
+        heros = Heros.list(session=session)
+        await websocket.send_text(heros.json())

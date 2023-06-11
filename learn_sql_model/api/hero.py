@@ -82,4 +82,4 @@ async def get_heros(
     session: Session = Depends(get_session),
 ) -> list[Hero]:
     "get all heros"
-    return HeroRead.list(session=session)
+    return Heros.list(session=session)

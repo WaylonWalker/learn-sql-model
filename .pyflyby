@@ -12,6 +12,7 @@ from learn_sql_model.models.hero import Hero
 from learn_sql_model.models.hero import HeroCreate
 from learn_sql_model.models.hero import HeroDelete
 from learn_sql_model.models.hero import HeroRead
+from learn_sql_model.models.hero import Heros
 from learn_sql_model.models.hero import HeroUpdate
 from learn_sql_model.models.new import new
 from learn_sql_model.models.new import newCreate
