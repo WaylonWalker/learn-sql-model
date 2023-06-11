@@ -107,7 +107,12 @@ class Client:
         # Console().print(self.hero)
         self.screen.fill((0, 0, 0))
 
-        for other in self.others.heros:
+        raw_heros = self.ws.recv()
+        others = Heros.parse_raw(raw_heros)
+        Console().print(others)
+
+        for other in others.heros:
+            Console().print(f"drawing {other.name}")
             pygame.draw.circle(self.screen, (255, 0, 0), (other.x, other.y), other.size)
             self.screen.blit(
                 my_font.render(other.name, False, (255, 255, 255), 1),

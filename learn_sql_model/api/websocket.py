@@ -1,11 +1,15 @@
+from contextlib import contextmanager
+
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
+from sqlalchemy import create_engine
+from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlmodel import Session
 from websockets.exceptions import ConnectionClosed
 
 from learn_sql_model.api.websocket_connection_manager import manager
-from learn_sql_model.config import get_session
-from learn_sql_model.models.hero import HeroUpdate, Heros
+from learn_sql_model.config import get_config, get_session
+from learn_sql_model.models.hero import Hero, HeroUpdate, Heros
 
 web_socket_router = APIRouter()
 
@@ -76,16 +80,32 @@ async def websocket_endpoint(websocket: WebSocket):
         await manager.broadcast(f"Client #{id} left the chat", id)
 
 
+@contextmanager
+def db_session(db_url):
+    """Creates a context with an open SQLAlchemy session."""
+    engine = create_engine(db_url, convert_unicode=True)
+    connection = engine.connect()
+    db_session = scoped_session(
+        sessionmaker(autocommit=False, autoflush=True, bind=engine)
+    )
+    yield db_session
+    db_session.close()
+    connection.close()
+
+
 @web_socket_router.websocket("/wsecho")
-async def websocket_endpoint(
+async def websocket_endpoint_hero_echo(
     websocket: WebSocket,
     session: Session = Depends(get_session),
 ):
+    config = get_config()
     await websocket.accept()
     try:
         while True:
-            heros = Heros.list(session=session)
-            await websocket.send_text(heros.json())
+            with db_session(config.database_url) as db:
+                heros = Heros(heros=db.query(Hero).all())
+                # heros = Heros.list(session=session)
+                await websocket.send_text(heros.json())
     except WebSocketDisconnect:
         print("disconnected")
     except ConnectionClosed:
@@ -93,7 +113,7 @@ async def websocket_endpoint(
 
 
 @web_socket_router.websocket("/ws-hero-update")
-async def websocket_endpoint(
+async def websocket_endpoint_hero_update(
     websocket: WebSocket,
     session: Session = Depends(get_session),
 ):

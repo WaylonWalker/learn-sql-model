@@ -13,6 +13,7 @@ from learn_sql_model.models.hero import (
     HeroDelete,
     HeroRead,
     HeroUpdate,
+    Heros,
 )
 
 hero_app = typer.Typer()
@@ -44,8 +45,18 @@ def list(
     limit: Optional[int] = None,
 ) -> Union[Hero, List[Hero]]:
     "list many heros"
-    hero = HeroRead.list(where=where, offset=offset, limit=limit)
-    Console().print(hero)
+    heros = Heros.list(where=where, offset=offset, limit=limit)
+    Console().print(heros)
+    return hero
+
+
+@hero_app.command()
+def clear() -> Union[Hero, List[Hero]]:
+    "list many heros"
+    heros = Heros.list()
+    for hero in heros.heros:
+        HeroDelete(id=hero.id).delete()
+
     return hero
 
 
