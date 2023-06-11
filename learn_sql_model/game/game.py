@@ -69,7 +69,7 @@ class Client:
         if self.moving_right:
             self.hero.x += speed
 
-        if self.ticks % 10 == 0:
+        if self.ticks % 60 == 0:
             HeroUpdate(
                 **{k: v for k, v in self.hero.dict().items() if v is not None}
             ).update()
