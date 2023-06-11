@@ -65,14 +65,15 @@ class HeroRead(HeroBase):
         # with config.database.session as session:
 
         if session is None:
-            session = get_config().database.session
-        statement = select(Hero)
-        if where != "None" and where is not None:
-            from sqlmodel import text
+            engine = get_config().database.engine
+        with Session(engine) as session:
+            statement = select(Hero)
+            if where != "None" and where is not None:
+                from sqlmodel import text
 
-            statement = statement.where(text(where))
-        statement = statement.offset(offset).limit(limit)
-        heroes = session.exec(statement).all()
+                statement = statement.where(text(where))
+            statement = statement.offset(offset).limit(limit)
+            heroes = session.exec(statement).all()
         return heroes
 
 
