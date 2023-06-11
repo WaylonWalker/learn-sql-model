@@ -9,7 +9,6 @@
 import atexit
 
 import pygame
-from rich.console import Console
 import typer
 from typer import Typer
 
@@ -77,7 +76,7 @@ class Client:
             self.others = [hero for hero in HeroRead.list() if hero.id != self.hero.id]
 
     def render(self):
-        Console().print(self.hero)
+        # Console().print(self.hero)
         self.screen.fill((0, 0, 0))
 
         for other in self.others:
