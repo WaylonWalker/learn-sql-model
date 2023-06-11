@@ -43,7 +43,8 @@ class Client:
         self.moving_left = False
         self.moving_right = False
 
-        self.others = HeroRead.list()
+        self.others = [hero for hero in HeroRead.list() if hero.id != self.hero.id]
+        self.ticks = 0
 
         atexit.register(self.quit)
 
@@ -53,6 +54,7 @@ class Client:
             self.update()
             self.render()
             self.clock.tick(60)
+            self.ticks += 1
         self.quit()
 
     def quit(self):
@@ -72,7 +74,8 @@ class Client:
             **{k: v for k, v in self.hero.dict().items() if v is not None}
         ).update()
 
-        self.others = HeroRead.list()
+        if self.ticks % 10 == 0:
+            self.others = [hero for hero in HeroRead.list() if hero.id != self.hero.id]
 
     def render(self):
         Console().print(self.hero)
