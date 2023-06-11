@@ -9,6 +9,7 @@
 import atexit
 
 import pygame
+from rich.console import Console
 import typer
 from typer import Typer
 from websocket import create_connection
@@ -29,7 +30,6 @@ class Client:
     def __init__(self, name, secret_name):
         self.hero = Hero(name=name, secret_name=secret_name, x=400, y=300, size=50)
         self.hero = HeroCreate(**self.hero.dict()).post()
-        pygame.init()
 
         self.screen = pygame.display.set_mode((800, 600))
         pygame.display.set_caption("Learn SQL Model")
@@ -41,13 +41,35 @@ class Client:
         self.moving_down = False
         self.moving_left = False
         self.moving_right = False
-        self.ws = create_connection(
-            f"ws://{config.api_client.host}:{config.api_client.port}/wsecho"
-        )
-
         self.ticks = 0
 
         atexit.register(self.quit)
+
+    @property
+    def ws(self):
+        def connect():
+            self._ws = create_connection(
+                f"ws://{config.api_client.host}:{config.api_client.port}/wsecho"
+            )
+
+        if not hasattr(self, "_ws"):
+            connect()
+        if not self._ws.connected:
+            connect()
+        return self._ws
+
+    @property
+    def ws_update(self):
+        def connect():
+            self._ws_update = create_connection(
+                f"ws://{config.api_client.host}:{config.api_client.port}/ws-hero-update"
+            )
+
+        if not hasattr(self, "_ws_update"):
+            connect()
+        if not self._ws_update.connected:
+            connect()
+        return self._ws_update
 
     @property
     def others(self):
@@ -61,6 +83,7 @@ class Client:
             self.render()
             self.clock.tick(60)
             self.ticks += 1
+        Console().print("not running, quitting")
         self.quit()
 
     def quit(self):
@@ -76,10 +99,9 @@ class Client:
         if self.moving_right:
             self.hero.x += speed
 
-        if self.ticks % 60 == 0:
-            HeroUpdate(
-                **{k: v for k, v in self.hero.dict().items() if v is not None}
-            ).update()
+        # if self.ticks % 1 == 0:
+        update = HeroUpdate(**self.hero.dict(exclude_unset=True))
+        self.ws_update.send(update.json())
 
     def render(self):
         # Console().print(self.hero)

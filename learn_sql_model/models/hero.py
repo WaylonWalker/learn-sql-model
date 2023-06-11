@@ -102,7 +102,18 @@ class HeroUpdate(SQLModel):
     pet_id: Optional[int] = Field(default=None, foreign_key="pet.id")
     pet: Optional[Pet] = Relationship(back_populates="hero")
 
-    def update(self) -> Hero:
+    def update(self, session: Session = None) -> Hero:
+        if session is not None:
+            db_hero = session.get(Hero, self.id)
+            if not db_hero:
+                raise HTTPException(status_code=404, detail="Hero not found")
+            for key, value in self.dict(exclude_unset=True).items():
+                setattr(db_hero, key, value)
+            session.add(db_hero)
+            session.commit()
+            session.refresh(db_hero)
+            return db_hero
+
         r = httpx.patch(
             f"{config.api_client.url}/hero/",
             json=self.dict(),
