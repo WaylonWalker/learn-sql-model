@@ -70,11 +70,10 @@ class Client:
         if self.moving_right:
             self.hero.x += speed
 
-        HeroUpdate(
-            **{k: v for k, v in self.hero.dict().items() if v is not None}
-        ).update()
-
         if self.ticks % 10 == 0:
+            HeroUpdate(
+                **{k: v for k, v in self.hero.dict().items() if v is not None}
+            ).update()
             self.others = [hero for hero in HeroRead.list() if hero.id != self.hero.id]
 
     def render(self):
