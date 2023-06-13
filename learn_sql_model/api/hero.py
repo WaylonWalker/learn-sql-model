@@ -3,7 +3,7 @@ from sqlmodel import SQLModel, Session
 
 from learn_sql_model.api.websocket_connection_manager import manager
 from learn_sql_model.config import get_config, get_session
-from learn_sql_model.models.hero import Hero, HeroCreate, HeroRead, HeroUpdate
+from learn_sql_model.models.hero import Hero, HeroCreate, HeroRead, HeroUpdate, Heros
 
 hero_router = APIRouter()
 
@@ -80,6 +80,6 @@ async def delete_hero(
 async def get_heros(
     *,
     session: Session = Depends(get_session),
-) -> list[Hero]:
+) -> Heros:
     "get all heros"
     return Heros.list(session=session)
