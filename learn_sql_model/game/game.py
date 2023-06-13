@@ -9,12 +9,12 @@
 import atexit
 
 import pygame
-from rich.console import Console
 import typer
 from typer import Typer
 from websocket import create_connection
 
 from learn_sql_model.config import get_config
+from learn_sql_model.console import console
 from learn_sql_model.models.hero import Hero, HeroCreate, HeroDelete, HeroUpdate, Heros
 
 speed = 10
@@ -24,9 +24,6 @@ pygame.font.init()  # you have to call this at the start,
 my_font = pygame.font.SysFont("Comic Sans MS", 30)
 
 config = get_config()
-
-console = Console()
-console.quiet = True
 
 
 class Client:
@@ -60,19 +57,6 @@ class Client:
         if not self._ws.connected:
             connect()
         return self._ws
-
-    @property
-    def ws_update(self):
-        def connect():
-            self._ws_update = create_connection(
-                f"ws://{config.api_client.host}:{config.api_client.port}/ws-hero-update"
-            )
-
-        if not hasattr(self, "_ws_update"):
-            connect()
-        if not self._ws_update.connected:
-            connect()
-        return self._ws_update
 
     def run(self):
         while self.running:
@@ -119,11 +103,14 @@ class Client:
         others = Heros.parse_raw(raw_heros)
 
         for other in others.heros:
-            pygame.draw.circle(self.screen, (255, 0, 0), (other.x, other.y), other.size)
-            self.screen.blit(
-                my_font.render(other.name, False, (255, 255, 255), 1),
-                (other.x, other.y),
-            )
+            if other.id != self.hero.id:
+                pygame.draw.circle(
+                    self.screen, (255, 0, 0), (other.x, other.y), other.size
+                )
+                self.screen.blit(
+                    my_font.render(other.name, False, (255, 255, 255), 1),
+                    (other.x, other.y),
+                )
 
         pygame.draw.circle(
             self.screen, (0, 0, 255), (self.hero.x, self.hero.y), self.hero.size

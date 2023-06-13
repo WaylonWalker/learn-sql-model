@@ -2,7 +2,6 @@ from contextlib import contextmanager
 
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
-from rich.console import Console
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlmodel import Session
@@ -10,6 +9,7 @@ from websockets.exceptions import ConnectionClosed
 
 from learn_sql_model.api.websocket_connection_manager import manager
 from learn_sql_model.config import get_config, get_session
+from learn_sql_model.console import console
 from learn_sql_model.models.hero import HeroUpdate, Heros
 
 web_socket_router = APIRouter()
@@ -110,7 +110,7 @@ async def websocket_endpoint_hero_echo(
                 heros = con.execute("SELECT * FROM hero").fetchall()
                 heros = Heros.parse_obj({"heros": heros})
                 hero.update(session=session)
-                Console().print(heros)
+                console.print(heros)
                 await websocket.send_text(heros.json())
 
     except WebSocketDisconnect:

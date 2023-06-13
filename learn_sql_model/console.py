@@ -1,4 +1,4 @@
 from rich.console import Console
 
 console = Console()
-console.quiet = False
+console.quiet = True
