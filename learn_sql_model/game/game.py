@@ -25,6 +25,9 @@ my_font = pygame.font.SysFont("Comic Sans MS", 30)
 
 config = get_config()
 
+console = Console()
+console.quiet = True
+
 
 class Client:
     def __init__(self, name, secret_name):
@@ -71,19 +74,19 @@ class Client:
             connect()
         return self._ws_update
 
-    @property
-    def others(self):
-        raw_heros = self.ws.recv()
-        return Heros.parse_raw(raw_heros)
-
     def run(self):
         while self.running:
+            console.print("running")
+            console.print("handle_events")
             self.handle_events()
+            console.print("update")
             self.update()
+            console.print("render")
             self.render()
-            self.clock.tick(60)
+            time = self.clock.tick(60)
             self.ticks += 1
-        Console().print("not running, quitting")
+            console.print(f"time: {time}")
+            console.print(f"ticks: {self.ticks}")
         self.quit()
 
     def quit(self):
@@ -100,19 +103,22 @@ class Client:
             self.hero.x += speed
 
         # if self.ticks % 1 == 0:
+        console.print("updating")
         update = HeroUpdate(**self.hero.dict(exclude_unset=True))
-        self.ws_update.send(update.json())
+        console.print(update)
+
+        self.ws.send(update.json())
+        console.print("sent")
 
     def render(self):
-        # Console().print(self.hero)
         self.screen.fill((0, 0, 0))
 
         raw_heros = self.ws.recv()
+        console.print(raw_heros)
+
         others = Heros.parse_raw(raw_heros)
-        Console().print(others)
 
         for other in others.heros:
-            Console().print(f"drawing {other.name}")
             pygame.draw.circle(self.screen, (255, 0, 0), (other.x, other.y), other.size)
             self.screen.blit(
                 my_font.render(other.name, False, (255, 255, 255), 1),
