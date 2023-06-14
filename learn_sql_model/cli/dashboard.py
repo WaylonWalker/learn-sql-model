@@ -2,9 +2,9 @@ from textual.app import App, ComposeResult
 from textual.containers import ScrollableContainer
 from textual.widgets import Footer, Header, Static
 import typer
+from websocket import create_connection
 
 from learn_sql_model.cli.common import verbose_callback
-from learn_sql_model.models.hero import Heros
 
 dashboard_app = typer.Typer()
 
@@ -24,16 +24,8 @@ class HeroName(Static):
     """A stopwatch widget."""
 
 
-class DashboardApp(App):
-    """A Textual app to manage stopwatches."""
-
-    BINDINGS = [("d", "toggle_dark", "Toggle dark mode")]
-
-    def compose(self) -> ComposeResult:
-        """Create child widgets for the app."""
-        yield Header()
-        yield Footer()
-        yield ScrollableContainer(*[HeroName(hero.name) for hero in Heros.list().heros])
+class HerosDisplay(Static):
+    """A stopwatch widget."""
 
     @property
     def ws(self):
@@ -47,6 +39,24 @@ class DashboardApp(App):
         if not self._ws.connected:
             connect()
         return self._ws
+
+    def compose(self) -> ComposeResult:
+        """Create child widgets of a stopwatch."""
+        for hero in self.heros:
+            yield HeroName(hero.name)
+
+
+class DashboardApp(App):
+    """A Textual app to manage stopwatches."""
+
+    BINDINGS = [("d", "toggle_dark", "Toggle dark mode")]
+    # heros = reactive(Heros.list())
+
+    def compose(self) -> ComposeResult:
+        """Create child widgets for the app."""
+        yield Header()
+        yield Footer()
+        yield ScrollableContainer(HerosDisplay())
 
     def action_toggle_dark(self) -> None:
         """An action to toggle dark mode."""
