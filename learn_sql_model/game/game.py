@@ -1,15 +1,7 @@
-# using pygame make a game using Hero
-# it should be gamepad and mouse compatible
-# it should have a server that keeps track of the game logic
-# it should have a renderer that renders the game
-# it should have a client that sends commands to the server
-#
-
-
 import atexit
 
+from faker import Faker
 import pygame
-import typer
 from typer import Typer
 from websocket import create_connection
 
@@ -49,7 +41,7 @@ class Client:
     def ws(self):
         def connect():
             self._ws = create_connection(
-                f"ws://{config.api_client.host}:{config.api_client.port}/wsecho"
+                f"ws://{config.api_client.url.replace('https://', '')}/wsecho"
             )
 
         if not hasattr(self, "_ws"):
@@ -176,17 +168,17 @@ class Client:
         pass
 
 
-app = Typer()
+game_app = Typer()
 
 
-@app.command()
-def run(
-    name: str = typer.Option(...),
-    secret_name: str = typer.Option(...),
-):
+@game_app.command()
+def run():
+    f = Faker()
+    name = "-".join(f.words(2))
+    secret_name = "-".join(f.words(2))
     client = Client(name, secret_name)
     client.run()
 
 
 if __name__ == "__main__":
-    app()
+    game_app()

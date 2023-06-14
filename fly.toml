@@ -1,0 +1,40 @@
+# fly.toml app configuration file generated for learn-sql-model on 2023-06-13T20:34:33-05:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "learn-sql-model"
+primary_region = "ord"
+console_command = "learn-sql-model api run"
+
+[experimental]
+  auto_rollback = true
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "5000"
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 5000
+  processes = ["app"]
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+  [services.concurrency]
+    type = "connections"
+    hard_limit = 25
+    soft_limit = 20
+
+  [[services.tcp_checks]]
+    interval = "15s"
+    timeout = "2s"
+    grace_period = "1s"
+    restart_limit = 0

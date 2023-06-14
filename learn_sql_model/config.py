@@ -2,7 +2,7 @@ from contextvars import ContextVar
 from typing import TYPE_CHECKING
 
 from fastapi import Depends
-from pydantic import BaseModel, BaseSettings
+from pydantic import BaseModel, BaseSettings, validator
 from sqlalchemy import create_engine
 from sqlmodel import SQLModel, Session
 
@@ -60,6 +60,12 @@ class Config(BaseSettings):
         extra = "ignore"
         env_nested_delimiter = "__"
         env_file = ".env", ".env.dev", ".env.qa", ".env.prod"
+
+    @validator("database_url")
+    def validate_database_url(cls, v: str) -> str:
+        if v.startswith("postgres://"):
+            return v.replace("postgres://", "postgresql+psycopg2://")
+        return v
 
     @property
     def database(self) -> Database:

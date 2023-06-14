@@ -8,4 +8,6 @@ RUN pip3 install .
 COPY . /app
 RUN pip3 install .
 
+EXPOSE 5000
+
 ENTRYPOINT ["learn-sql-model", "api", "run"]
