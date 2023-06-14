@@ -13,15 +13,21 @@ class HeroFactory(ModelFactory[Hero]):
     id = None
     pet_id = None
 
-    __random_seed__ = 10
-
     @classmethod
     def name(cls) -> str:
-        return cls.__faker__.first_name()
+        return (
+            cls.__faker__.word(part_of_speech="adjective")
+            + "-"
+            + cls.__faker__.word(part_of_speech="noun")
+        )
 
     @classmethod
     def secret_name(cls) -> str:
-        return cls.__faker__.name()
+        return (
+            cls.__faker__.word(part_of_speech="adjective")
+            + "-"
+            + cls.__faker__.word(part_of_speech="noun")
+        )
 
     @classmethod
     def age(cls) -> str:

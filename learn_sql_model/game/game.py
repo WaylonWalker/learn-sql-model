@@ -1,13 +1,13 @@
 import atexit
 
-from faker import Faker
 import pygame
 from typer import Typer
 from websocket import create_connection
 
 from learn_sql_model.config import get_config
 from learn_sql_model.console import console
-from learn_sql_model.models.hero import Hero, HeroCreate, HeroDelete, HeroUpdate, Heros
+from learn_sql_model.factories.hero import HeroFactory
+from learn_sql_model.models.hero import HeroCreate, HeroDelete, HeroUpdate, Heros
 
 speed = 10
 
@@ -19,9 +19,9 @@ config = get_config()
 
 
 class Client:
-    def __init__(self, name, secret_name):
-        self.hero = Hero(name=name, secret_name=secret_name, x=400, y=300, size=50)
-        self.hero = HeroCreate(**self.hero.dict()).post()
+    def __init__(self):
+        hero = HeroFactory().build(size=50, x=100, y=100)
+        self.hero = HeroCreate(**hero.dict()).post()
 
         self.screen = pygame.display.set_mode((800, 600))
         pygame.display.set_caption("Learn SQL Model")
@@ -34,6 +34,7 @@ class Client:
         self.moving_left = False
         self.moving_right = False
         self.ticks = 0
+        self.others = []
 
         atexit.register(self.quit)
 
@@ -81,23 +82,21 @@ class Client:
         if self.moving_right:
             self.hero.x += speed
 
-        # if self.ticks % 1 == 0:
-        console.print("updating")
-        update = HeroUpdate(**self.hero.dict(exclude_unset=True))
-        console.print(update)
+        if self.ticks % 5 == 0 or self.ticks == 0:
+            console.print("updating")
+            update = HeroUpdate(**self.hero.dict(exclude_unset=True))
+            console.print(update)
+            self.ws.send(update.json())
+            console.print("sent")
 
-        self.ws.send(update.json())
-        console.print("sent")
+            raw_heros = self.ws.recv()
+            console.print(raw_heros)
+            self.others = Heros.parse_raw(raw_heros)
 
     def render(self):
         self.screen.fill((0, 0, 0))
 
-        raw_heros = self.ws.recv()
-        console.print(raw_heros)
-
-        others = Heros.parse_raw(raw_heros)
-
-        for other in others.heros:
+        for other in self.others.heros:
             if other.id != self.hero.id:
                 pygame.draw.circle(
                     self.screen, (255, 0, 0), (other.x, other.y), other.size
@@ -176,10 +175,7 @@ game_app = Typer()
 
 @game_app.command()
 def run():
-    f = Faker()
-    name = "-".join(f.words(2))
-    secret_name = "-".join(f.words(2))
-    client = Client(name, secret_name)
+    client = Client()
     client.run()
 
 
