@@ -4,6 +4,7 @@ from typer.main import get_group
 
 from learn_sql_model.cli.api import api_app
 from learn_sql_model.cli.config import config_app
+from learn_sql_model.cli.dashboard import dashboard_app
 from learn_sql_model.cli.hero import hero_app
 from learn_sql_model.cli.model import model_app
 from learn_sql_model.game.game import game_app
@@ -18,6 +19,7 @@ app.add_typer(model_app, name="model")
 app.add_typer(api_app, name="api")
 app.add_typer(hero_app, name="hero")
 app.add_typer(game_app, name="game")
+app.add_typer(dashboard_app, name="dashboard")
 
 
 def version_callback(value: bool) -> None:

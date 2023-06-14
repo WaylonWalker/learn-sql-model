@@ -5,7 +5,7 @@ import httpx
 from pydantic import BaseModel
 from sqlmodel import Field, Relationship, SQLModel, Session, select
 
-from learn_sql_model.config import config, get_config
+from learn_sql_model.config import config
 from learn_sql_model.models.pet import Pet
 
 
@@ -79,10 +79,11 @@ class Heros(BaseModel):
             return Heros(heros=heros)
 
         if session is None:
-            engine = get_config().database.engine
-            with Session(engine) as session:
-                heros = get_heros(session, where, offset, limit)
-            return heros
+
+            r = httpx.get(f"{config.api_client.url}/heros/")
+            if r.status_code != 200:
+                raise RuntimeError(f"{r.status_code}:\n {r.text}")
+            return Heros.parse_obj(r.json())
 
         return get_heros(session, where, offset, limit)
 

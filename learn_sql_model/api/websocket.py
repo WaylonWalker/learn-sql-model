@@ -101,14 +101,19 @@ async def websocket_endpoint_hero_echo(
 ):
     config = get_config()
     await websocket.accept()
+    last_heros = None
 
     try:
         with config.database.engine.connect() as con:
             while True:
                 data = await websocket.receive_text()
                 hero = HeroUpdate.parse_raw(data)
-                heros = con.execute("SELECT * FROM hero").fetchall()
-                heros = Heros.parse_obj({"heros": heros})
+                # heros = con.execute("SELECT * FROM hero").fetchall()
+                # heros = Heros.parse_obj({"heros": heros})
+                heros = Heros.list(session=session)
+                if heros != last_heros:
+                    await manager.broadcast(heros.json(), "heros")
+                    last_heros = heros
                 hero.update(session=session)
                 console.print(heros)
                 await websocket.send_text(heros.json())
@@ -119,21 +124,28 @@ async def websocket_endpoint_hero_echo(
         print("connection closed")
 
 
-@web_socket_router.websocket("/ws-hero-update")
-async def websocket_endpoint_hero_update(
+@web_socket_router.websocket("/ws-heros'")
+async def websocket_endpoint_heros(
     websocket: WebSocket,
     session: Session = Depends(get_session),
 ):
+    await manager.connect(websocket, "heros")
     await websocket.accept()
+
     try:
         while True:
-            data = await websocket.receive_text()
-            hero = HeroUpdate.parse_raw(data)
-            print(hero)
-            hero.update(session=session)
-            print("hero is updated")
+            ...
+            # data = await websocket.receive_text()
+            # hero = HeroUpdate.parse_raw(data)
+            # heros = con.execute("SELECT * FROM hero").fetchall()
+            # heros = Heros.parse_obj({"heros": heros})
+            # hero.update(session=session)
+            # console.print(heros)
+            # await websocket.send_text(heros.json())
 
     except WebSocketDisconnect:
         print("disconnected")
+        manager.disconnect(websocket, "heros")
     except ConnectionClosed:
+        manager.disconnect(websocket, "heros")
         print("connection closed")
