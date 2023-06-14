@@ -21,10 +21,9 @@ class ApiServer(BaseModel):
 
 
 class ApiClient(BaseModel):
-    host: str = "0.0.0.0"
-    port: int = 5000
-    protocol: str = "http"
-    url: str = f"{protocol}://{host}:{port}"
+    host: str = "learn-sql-model.fly.dev"
+    protocol: str = "https"
+    url: str = f"{protocol}://{host}"
 
 
 class Database:
