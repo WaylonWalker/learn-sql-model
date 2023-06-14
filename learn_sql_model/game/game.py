@@ -66,7 +66,10 @@ class Client:
         self.quit()
 
     def quit(self):
-        HeroDelete(id=self.hero.id).delete()
+        try:
+            HeroDelete(id=self.hero.id).delete()
+        except:
+            pass
 
     def update(self):
         if self.moving_up:
