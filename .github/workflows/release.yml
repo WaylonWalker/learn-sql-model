@@ -5,11 +5,34 @@ on:
     branches:
       - "*"
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      # - name: remove last latest release
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: gh release delete latest
+      - name: create latest release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release create latest --notes "latest release"
+      - name: create versioned release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release create v${{ github.run_number }} --notes "Release ${{ github.run_number }}"
+      - name: Upload Release Asset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload latest dist/
   release:
+
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write # release changes require contents write
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -22,3 +45,7 @@ jobs:
         with:
           name: lsm-${{ matrix.os }}
           path: dist
+      - name: Upload Release Asset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ github.run_number }} dist/
