@@ -41,11 +41,13 @@ jobs:
         with:
           name: lsm-${{ matrix.os }}
           path: dist
-      - name: Upload Release Asset
+      - name: zip up dist
+        run: zip -r dist.zip lsm-${{ matrix.os }}
+      - name: Upload Release Asset to versioned release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload v${{ github.run_number }} dist/learn_sql_model*
-      - name: Upload Release Asset
+        run: gh release upload v${{ github.run_number }} lsm-${{ matrix.os }}
+      - name: Upload Release Asset to latest release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload latest dist/learn_sql_model*
+        run: gh release upload latest lsm-${{ matrix.os }}
