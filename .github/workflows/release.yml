@@ -42,7 +42,7 @@ jobs:
           name: lsm-${{ matrix.os }}
           path: dist
       - name: zip up dist
-        run: zip -r dist.zip lsm-${{ matrix.os }}
+        run: zip -r lsm-${{ matrix.os }}.zip dist
       - name: Upload Release Asset to versioned release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
