@@ -31,6 +31,7 @@ dependencies = [
 'black',
 'alembic',
 'pygame',
+'pyinstaller',
   "pyflyby",
   "anyconfig",
   "copier",
@@ -89,6 +90,7 @@ format = "black learn_sql_model"
 format-check = "black --check learn_sql_model"
 fix_ruff = "ruff --fix learn_sql_model"
 fix = ['format', 'fix_ruff']
+build = "pyinstaller --onefile --name learn_sql_model --clean --noconsole learn_sql_model/game/game.py"
 build-docs = "markata build"
 lint-test = [
  "lint",
