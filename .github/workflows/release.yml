@@ -41,8 +41,10 @@ jobs:
         with:
           name: lsm-${{ matrix.os }}
           path: dist
-      - name: zip up dist
-        run: zip -r lsm-${{ matrix.os }}.zip dist
+      - uses: vimtor/action-zip@v1
+        with:
+          files: dist/
+          dest: lsm-${{ matrix.os }}.zip
       - name: Upload Release Asset to versioned release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
