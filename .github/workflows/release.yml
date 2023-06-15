@@ -44,8 +44,8 @@ jobs:
       - name: Upload Release Asset
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload v${{ github.run_number }} dist/
+        run: gh release upload v${{ github.run_number }} dist/learn_sql_model*
       - name: Upload Release Asset
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload latest dist/
+        run: gh release upload latest dist/learn_sql_model*
