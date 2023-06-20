@@ -24,35 +24,50 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-"python-socketio[client]",
-"fastapi-socketio",
-"psycopg2-binary",
-'pygame',
-'black',
-'alembic',
-'pygame',
-'pyinstaller',
-  "pyflyby",
+  "python-socketio[client]",
   "anyconfig",
   "copier",
   "engorgio",
   "fastapi",
   "httpx",
-  "passlib[bcrypt]",
-  "polyfactory",
-  "psycopg2",
-  "python-jose[cryptography]",
-  "python-multipart",
+  "pydantic[dotenv]",
+  "pyflyby",
+  "pyinstaller",
   "rich",
   "sqlmodel",
   "textual",
   "toml",
   "trogon",
   "typer",
-  "uvicorn[standard]",
 ]
 
 dynamic = ["version"]
+
+[project.optional-dependencies]
+game = [
+  "noise",
+  "pygame",
+  "polyfactory",
+  "faker",
+]
+api = [
+  "fastapi-socketio",
+  "passlib[bcrypt]",
+  "psycopg2",
+  "psycopg2-binary",
+  "python-jose[cryptography]",
+  "python-multipart",
+  "uvicorn[standard]",
+]
+manage = [
+  "alembic",
+  "polyfactory",
+  "faker",
+]
+all = [
+  "learn_sql_model[game, api, manage]",
+]
+
 
 [project.urls]
 Documentation = "https://github.com/waylonwalker/learn-sql-model#readme"

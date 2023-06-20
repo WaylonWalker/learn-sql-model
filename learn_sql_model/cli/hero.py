@@ -6,7 +6,6 @@ from rich.console import Console
 import typer
 
 from learn_sql_model.config import get_config
-from learn_sql_model.factories.hero import HeroFactory
 from learn_sql_model.models.hero import (
     Hero,
     HeroCreate,
@@ -14,6 +13,13 @@ from learn_sql_model.models.hero import (
     HeroRead,
     HeroUpdate,
     Heros,
+)
+from learn_sql_model.optional import _optional_import_
+
+HeroFactory = _optional_import_(
+    "learn_sql_model.factories.hero",
+    "HeroFactory",
+    group="api",
 )
 
 hero_app = typer.Typer()
@@ -46,7 +52,7 @@ def list(
 ) -> Union[Hero, List[Hero]]:
     "list many heros"
     heros = Heros.list(where=where, offset=offset, limit=limit)
-    Console().print(heros)
+    Console().print(hero)
     return hero
 
 

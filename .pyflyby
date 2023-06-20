@@ -1,3 +1,5 @@
+from learn_sql_model.optional import _optional_import_
+
 
 from learn_sql_model.api.websocket_connection_manager import manager
 from learn_sql_model.config import Config

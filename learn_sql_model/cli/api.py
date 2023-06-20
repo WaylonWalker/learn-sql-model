@@ -1,11 +1,12 @@
 import httpx
 from rich.console import Console
 import typer
-import uvicorn
 
 from learn_sql_model.cli.common import verbose_callback
 from learn_sql_model.config import get_config
+from learn_sql_model.optional import _optional_import_
 
+uvicorn = _optional_import_("uvicorn", group="api")
 api_app = typer.Typer()
 
 
