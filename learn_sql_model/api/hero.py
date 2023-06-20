@@ -82,4 +82,6 @@ async def get_heros(
     session: Session = Depends(get_session),
 ) -> Heros:
     "get all heros"
-    return Heros.list(session=session)
+    statement = select(Hero)
+    heros = session.exec(statement).all()
+    return Heros(heros=heros)

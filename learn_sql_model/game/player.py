@@ -37,6 +37,7 @@ class Player:
         self.moving_down = False
         self.moving_left = False
         self.moving_right = False
+        self.joysticks = {}
 
     def rename_hero(self):
         old_hero = self.hero

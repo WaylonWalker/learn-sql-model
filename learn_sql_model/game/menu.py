@@ -1,6 +1,8 @@
 from typing import Callable, Tuple
 
 from pydantic import BaseModel
+from learn_sql_model.optional import _optional_import_
+pygame = _optional_import_('pygame', group='game')
 
 
 screen_sizes = [

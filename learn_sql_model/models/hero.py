@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import HTTPException
 import httpx
 from pydantic import BaseModel
-from sqlmodel import Field, Relationship, SQLModel, Session, select
+from sqlmodel import Field, Relationship, SQLModel
 
 from learn_sql_model.config import config
 from learn_sql_model.models.pet import Pet
@@ -48,10 +48,9 @@ class HeroRead(HeroBase):
         cls,
         id: int,
     ) -> Hero:
-        with config.database.session as session:
-            hero = session.get(Hero, id)
-            if not hero:
-                raise HTTPException(status_code=404, detail="Hero not found")
+        r = httpx.get(f"{config.api_client.url}/hero/{id}")
+        if r.status_code != 200:
+            raise RuntimeError(f"{r.status_code}:\n {r.text}")
         return hero
 
 
@@ -61,31 +60,11 @@ class Heros(BaseModel):
     @classmethod
     def list(
         self,
-        where=None,
-        offset=0,
-        limit=None,
-        session: Session = None,
     ) -> Hero:
-        # with config.database.session as session:
-
-        def get_heros(session, where, offset, limit):
-            statement = select(Hero)
-            if where != "None" and where is not None:
-                from sqlmodel import text
-
-                statement = statement.where(text(where))
-            statement = statement.offset(offset).limit(limit)
-            heros = session.exec(statement).all()
-            return Heros(heros=heros)
-
-        if session is None:
-
-            r = httpx.get(f"{config.api_client.url}/heros/")
-            if r.status_code != 200:
-                raise RuntimeError(f"{r.status_code}:\n {r.text}")
-            return Heros.parse_obj(r.json())
-
-        return get_heros(session, where, offset, limit)
+        r = httpx.get(f"{config.api_client.url}/heros/")
+        if r.status_code != 200:
+            raise RuntimeError(f"{r.status_code}:\n {r.text}")
+        return Heros.parse_obj(r.json())
 
 
 class HeroUpdate(SQLModel):
@@ -103,18 +82,7 @@ class HeroUpdate(SQLModel):
     pet_id: Optional[int] = Field(default=None, foreign_key="pet.id")
     pet: Optional[Pet] = Relationship(back_populates="hero")
 
-    def update(self, session: Session = None) -> Hero:
-        if session is not None:
-            db_hero = session.get(Hero, self.id)
-            if not db_hero:
-                raise HTTPException(status_code=404, detail="Hero not found")
-            for key, value in self.dict(exclude_unset=True).items():
-                setattr(db_hero, key, value)
-            session.add(db_hero)
-            session.commit()
-            session.refresh(db_hero)
-            return db_hero
-
+    def update(self) -> Hero:
         r = httpx.patch(
             f"{config.api_client.url}/hero/",
             json=self.dict(),
