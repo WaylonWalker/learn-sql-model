@@ -8,6 +8,7 @@ from learn_sql_model.console import console
 from learn_sql_model.game.map import Map
 from learn_sql_model.game.menu import Menu
 from learn_sql_model.game.player import Player
+from learn_sql_model.game.light import Light
 from learn_sql_model.optional import _optional_import_
 
 pygame = _optional_import_("pygame", group="game")
@@ -33,6 +34,7 @@ class Client:
         self.player = Player(self)
         self.menu = Menu(self)
         self.map = Map(self)
+        self.light = Light(self)
         self.font = pygame.font.SysFont("", 50)
         self.joysticks = {}
 
@@ -78,6 +80,7 @@ class Client:
         self.screen.fill((0, 0, 0))
         self.map.render()
         self.player.render()
+        self.light.render()
 
         # update the screen
         self.menu.render()
