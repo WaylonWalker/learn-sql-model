@@ -9,7 +9,8 @@ from learn_sql_model.api.app import app
 from learn_sql_model.cli.hero import hero_app
 from learn_sql_model.config import get_config, get_session
 from learn_sql_model.factories.hero import HeroFactory
-from learn_sql_model.models.hero import Hero, HeroCreate, HeroRead
+from learn_sql_model.models import hero as hero_models
+from learn_sql_model.models.hero import Hero, HeroCreate, HeroRead, Heros
 
 runner = CliRunner()
 client = TestClient(app)
@@ -40,7 +41,7 @@ def client_fixture(session: Session):
 def test_api_post(client: TestClient):
     hero = HeroFactory().build(name="Steelman", age=25)
     hero_dict = hero.dict()
-    response = client.post("/hero/", json={"hero": hero_dict})
+    response = client.post("/hero/", json=hero_dict)
     response_hero = Hero.parse_obj(response.json())
 
     assert response.status_code == 200
@@ -49,8 +50,8 @@ def test_api_post(client: TestClient):
 
 
 def test_api_read_heroes(session: Session, client: TestClient):
-    hero_1 = Hero(name="Deadpond", secret_name="Dive Wilson")
-    hero_2 = Hero(name="Rusty-Man", secret_name="Tommy Sharp", age=48)
+    hero_1 = HeroFactory().build(name="Steelman", age=25)
+    hero_2 = HeroFactory().build(name="Rusty-Man", age=48)
     session.add(hero_1)
     session.add(hero_2)
     session.commit()
@@ -72,7 +73,7 @@ def test_api_read_heroes(session: Session, client: TestClient):
 
 
 def test_api_read_hero(session: Session, client: TestClient):
-    hero_1 = Hero(name="Deadpond", secret_name="Dive Wilson")
+    hero_1 = HeroFactory().build(name="Steelman", age=25)
     session.add(hero_1)
     session.commit()
 
@@ -87,7 +88,7 @@ def test_api_read_hero(session: Session, client: TestClient):
 
 
 def test_api_read_hero_404(session: Session, client: TestClient):
-    hero_1 = Hero(name="Deadpond", secret_name="Dive Wilson")
+    hero_1 = HeroFactory().build(name="Steelman", age=25)
     session.add(hero_1)
     session.commit()
 
@@ -96,33 +97,31 @@ def test_api_read_hero_404(session: Session, client: TestClient):
 
 
 def test_api_update_hero(session: Session, client: TestClient):
-    hero_1 = Hero(name="Deadpond", secret_name="Dive Wilson")
+    hero_1 = HeroFactory().build(name="Steelman", age=25)
     session.add(hero_1)
     session.commit()
 
-    response = client.patch(
-        f"/hero/", json={"hero": {"name": "Deadpuddle", "id": hero_1.id}}
-    )
+    response = client.patch(f"/hero/", json={"name": "Deadpuddle", "id": hero_1.id})
     data = response.json()
 
     assert response.status_code == 200
     assert data["name"] == "Deadpuddle"
-    assert data["secret_name"] == "Dive Wilson"
-    assert data["age"] is None
+    assert data["secret_name"] == hero_1.secret_name
+    assert data["age"] is hero_1.age
     assert data["id"] == hero_1.id
 
 
 def test_api_update_hero_404(session: Session, client: TestClient):
-    hero_1 = Hero(name="Deadpond", secret_name="Dive Wilson")
+    hero_1 = HeroFactory().build(name="Steelman", age=25)
     session.add(hero_1)
     session.commit()
 
-    response = client.patch(f"/hero/", json={"hero": {"name": "Deadpuddle", "id": 999}})
+    response = client.patch(f"/hero/", json={"name": "Deadpuddle", "id": 999})
     assert response.status_code == 404
 
 
 def test_delete_hero(session: Session, client: TestClient):
-    hero_1 = Hero(name="Deadpond", secret_name="Dive Wilson")
+    hero_1 = HeroFactory().build(name="Steelman", age=25)
     session.add(hero_1)
     session.commit()
 
@@ -136,7 +135,7 @@ def test_delete_hero(session: Session, client: TestClient):
 
 
 def test_delete_hero_404(session: Session, client: TestClient):
-    hero_1 = Hero(name="Deadpond", secret_name="Dive Wilson")
+    hero_1 = HeroFactory().build(name="Steelman", age=25)
     session.add(hero_1)
     session.commit()
 
@@ -165,68 +164,48 @@ def test_config_memory(mocker):
 
 
 def test_cli_get(mocker):
-    mocker.patch(
-        "learn_sql_model.config.Database.engine",
-        new_callable=lambda: create_engine(
-            "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
-        ),
-    )
+    hero = HeroFactory().build(name="Steelman", age=25, id=1)
+    hero = HeroRead(**hero.dict(exclude_none=True))
+    httpx = mocker.patch.object(hero_models, "httpx")
+    httpx.get.return_value = mocker.Mock()
+    httpx.get.return_value.status_code = 200
+    httpx.get.return_value.json.return_value = hero.dict()
 
-    config = get_config()
-    SQLModel.metadata.create_all(config.database.engine)
-
-    hero = HeroFactory().build(name="Steelman", age=25)
-    with config.database.session as session:
-        session.add(hero)
-        session.commit()
-        hero = session.get(Hero, hero.id)
-    result = runner.invoke(hero_app, ["get", "--hero-id", "1"])
+    result = runner.invoke(hero_app, ["get", "1"])
     assert result.exit_code == 0
     assert f"name='{hero.name}'" in result.stdout
     assert f"secret_name='{hero.secret_name}'" in result.stdout
+    assert httpx.get.call_count == 1
 
 
 def test_cli_get_404(mocker):
-    mocker.patch(
-        "learn_sql_model.config.Database.engine",
-        new_callable=lambda: create_engine(
-            "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
-        ),
-    )
+    hero = HeroFactory().build(name="Steelman", age=25, id=1)
+    hero = HeroRead(**hero.dict(exclude_none=True))
+    httpx = mocker.patch.object(hero_models, "httpx")
+    httpx.get.return_value = mocker.Mock()
+    httpx.get.return_value.status_code = 404
+    httpx.get.return_value.text = "Hero not found"
+    httpx.get.return_value.json.return_value = hero.dict()
 
-    config = get_config()
-    SQLModel.metadata.create_all(config.database.engine)
-
-    hero = HeroFactory().build(name="Steelman", age=25)
-    with config.database.session as session:
-        session.add(hero)
-        session.commit()
-        hero = session.get(Hero, hero.id)
-    result = runner.invoke(hero_app, ["get", "--hero-id", "999"])
-    assert result.exception.status_code == 404
-    assert result.exception.detail == "Hero not found"
+    result = runner.invoke(hero_app, ["get", "999"])
+    assert result.exit_code == 1
+    assert " ".join(result.exception.args[0].split()) == "404: Hero not found"
+    assert httpx.get.call_count == 1
 
 
 def test_cli_list(mocker):
-    mocker.patch(
-        "learn_sql_model.config.Database.engine",
-        new_callable=lambda: create_engine(
-            "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
-        ),
+    hero_1 = HeroRead(
+        **HeroFactory().build(name="Steelman", age=25, id=1).dict(exclude_none=True)
     )
+    hero_2 = HeroRead(
+        **HeroFactory().build(name="Hunk", age=52, id=2).dict(exclude_none=True)
+    )
+    heros = Heros(__root__=[hero_1, hero_2])
+    httpx = mocker.patch.object(hero_models, "httpx")
+    httpx.get.return_value = mocker.Mock()
+    httpx.get.return_value.status_code = 200
+    httpx.get.return_value.json.return_value = heros.dict()["__root__"]
 
-    config = get_config()
-    SQLModel.metadata.create_all(config.database.engine)
-
-    hero_1 = HeroFactory().build(name="Steelman", age=25)
-    hero_2 = HeroFactory().build(name="Hunk", age=52)
-
-    with config.database.session as session:
-        session.add(hero_1)
-        session.add(hero_2)
-        session.commit()
-        session.refresh(hero_1)
-        session.refresh(hero_2)
     result = runner.invoke(hero_app, ["list"])
     assert result.exit_code == 0
     assert f"name='{hero_1.name}'" in result.stdout
@@ -236,43 +215,57 @@ def test_cli_list(mocker):
 
 
 def test_model_post(mocker):
-    patch_httpx_post = mocker.patch(
-        "httpx.post", return_value=mocker.Mock(status_code=200)
-    )
-    hero = HeroFactory().build(name="Steelman", age=25)
+    hero = HeroFactory().build(name="Steelman", age=25, id=1)
     hero_create = HeroCreate(**hero.dict())
-    hero_create.post()
-    assert patch_httpx_post.call_count == 1
+
+    httpx = mocker.patch.object(hero_models, "httpx")
+    httpx.post.return_value = mocker.Mock()
+    httpx.post.return_value.status_code = 200
+    httpx.post.return_value.json.return_value = hero.dict()
+    result = hero_create.post()
+    assert result == hero
+    assert httpx.get.call_count == 0
+    assert httpx.post.call_count == 1
 
 
 def test_model_post_500(mocker):
-    patch_httpx_post = mocker.patch(
-        "httpx.post", return_value=mocker.Mock(status_code=500)
-    )
-    hero = HeroFactory().build(name="Steelman", age=25)
+    hero = HeroFactory().build(name="Steelman", age=25, id=1)
     hero_create = HeroCreate(**hero.dict())
+
+    httpx = mocker.patch.object(hero_models, "httpx")
+    httpx.post.return_value = mocker.Mock()
+    httpx.post.return_value.status_code = 500
+    httpx.post.return_value.json.return_value = hero.dict()
     with pytest.raises(RuntimeError):
         hero_create.post()
-    assert patch_httpx_post.call_count == 1
+    assert httpx.get.call_count == 0
+    assert httpx.post.call_count == 1
 
 
 def test_model_read_hero(mocker, session: Session, client: TestClient):
-    mocker.patch(
-        "learn_sql_model.config.Database.engine",
-        new_callable=lambda: create_engine(
-            "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
-        ),
-    )
+    hero = HeroFactory().build(name="Steelman", age=25, id=1)
 
-    config = get_config()
-    SQLModel.metadata.create_all(config.database.engine)
-
-    hero = Hero(name="Deadpond", secret_name="Dive Wilson")
-    session = config.database.session
-    session.add(hero)
-    session.commit()
-    session.refresh(hero)
+    httpx = mocker.patch.object(hero_models, "httpx")
+    httpx.get.return_value = mocker.Mock()
+    httpx.get.return_value.status_code = 200
+    httpx.get.return_value.json.return_value = hero.dict()
 
     hero_read = HeroRead.get(id=hero.id)
-    assert hero_read.name == "Deadpond"
-    assert hero_read.secret_name == "Dive Wilson"
+    assert hero_read.name == hero.name
+    assert hero_read.secret_name == hero.secret_name
+    assert httpx.get.call_count == 1
+    assert httpx.post.call_count == 0
+
+
+def test_model_read_hero_404(mocker, session: Session, client: TestClient):
+    hero = HeroFactory().build(name="Steelman", age=25, id=1)
+    httpx = mocker.patch.object(hero_models, "httpx")
+    httpx.get.return_value = mocker.Mock()
+    httpx.get.return_value.status_code = 404
+    httpx.get.return_value.text = "Hero not found"
+
+    with pytest.raises(RuntimeError) as e:
+        HeroRead.get(id=hero.id)
+        assert e.value.args[0] == "404: Hero not found"
+    assert httpx.get.call_count == 1
+    assert httpx.post.call_count == 0

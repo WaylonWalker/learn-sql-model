@@ -49,7 +49,7 @@ class Player:
     def quit(self):
         try:
             HeroDelete(id=self.hero.id).delete()
-        except:
+        except RuntimeError:
             pass
 
     def handle_events(self):
@@ -153,13 +153,12 @@ class Player:
         self.pos = pygame.math.Vector2(self.hero.x, self.hero.y)
 
         if self.game.map.point_check_collision(self.pos.x, self.pos.y):
-
             start_pos = pygame.math.Vector2(self.x_last, self.y_last)
             end_pos = pygame.math.Vector2(self.hero.x, self.hero.y)
             movement_vector = end_pos - start_pos
             try:
                 movement_direction = movement_vector.normalize()
-            except:
+            except ZeroDivisionError:
                 end_pos = pygame.math.Vector2(self.hero.x + 128, self.hero.y + 128)
                 movement_vector = end_pos - start_pos
                 movement_direction = movement_vector.normalize()

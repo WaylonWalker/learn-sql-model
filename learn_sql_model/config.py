@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from fastapi import Depends
 from pydantic import BaseModel, BaseSettings, validator
 from sqlalchemy import create_engine
-from sqlmodel import SQLModel, Session
+from sqlmodel import Session
 
 from learn_sql_model.standard_config import load
 
@@ -71,7 +71,8 @@ class Config(BaseSettings):
         return get_database(config=self)
 
     def init(self) -> None:
-        SQLModel.metadata.create_all(self.database.engine)
+        # SQLModel.metadata.create_all(self.database.engine)
+        ...
 
 
 def get_database(config: Config = None) -> Database:
@@ -88,7 +89,8 @@ def get_config(overrides: dict = {}) -> Config:
 
 def get_session() -> "Session":
     config = get_config()
-    with Session(config.database.engine) as session:
+    engine = create_engine(config.database_url)
+    with Session(engine) as session:
         yield session
 
 

@@ -2,7 +2,8 @@ from typing import Callable, Tuple
 
 from pydantic import BaseModel
 from learn_sql_model.optional import _optional_import_
-pygame = _optional_import_('pygame', group='game')
+
+pygame = _optional_import_("pygame", group="game")
 
 
 screen_sizes = [
@@ -128,7 +129,6 @@ class Menu:
 
 class Hamburger:
     def __init__(self, game):
-
         self.game = game
         self.hamburger_width = 50
         self.bar_height = self.hamburger_width / 4

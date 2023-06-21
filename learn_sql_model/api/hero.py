@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import SQLModel, Session
+from sqlmodel import Session, select
 
 from learn_sql_model.api.websocket_connection_manager import manager
-from learn_sql_model.config import get_config, get_session
+from learn_sql_model.config import get_session
 from learn_sql_model.models.hero import Hero, HeroCreate, HeroRead, HeroUpdate, Heros
 
 hero_router = APIRouter()
@@ -10,7 +10,8 @@ hero_router = APIRouter()
 
 @hero_router.on_event("startup")
 def on_startup() -> None:
-    SQLModel.metadata.create_all(get_config().database.engine)
+    # SQLModel.metadata.create_all(get_config().database.engine)
+    ...
 
 
 @hero_router.get("/hero/{hero_id}")
@@ -32,7 +33,7 @@ async def post_hero(
     session: Session = Depends(get_session),
     hero: HeroCreate,
 ) -> HeroRead:
-    "read all the heros"
+    "create a hero"
     db_hero = Hero.from_orm(hero)
     session.add(db_hero)
     session.commit()
@@ -47,7 +48,7 @@ async def patch_hero(
     session: Session = Depends(get_session),
     hero: HeroUpdate,
 ) -> HeroRead:
-    "read all the heros"
+    "update a hero"
     db_hero = session.get(Hero, hero.id)
     if not db_hero:
         raise HTTPException(status_code=404, detail="Hero not found")
@@ -66,7 +67,7 @@ async def delete_hero(
     session: Session = Depends(get_session),
     hero_id: int,
 ):
-    "read all the heros"
+    "delete a hero"
     hero = session.get(Hero, hero_id)
     if not hero:
         raise HTTPException(status_code=404, detail="Hero not found")
@@ -84,4 +85,4 @@ async def get_heros(
     "get all heros"
     statement = select(Hero)
     heros = session.exec(statement).all()
-    return Heros(heros=heros)
+    return Heros(__root__=heros)

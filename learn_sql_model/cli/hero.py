@@ -33,7 +33,6 @@ def hero():
 
 
 @hero_app.command()
-@engorgio(typer=True)
 def get(
     hero_id: Optional[int] = typer.Argument(default=None),
 ) -> Union[Hero, List[Hero]]:
@@ -44,16 +43,11 @@ def get(
 
 
 @hero_app.command()
-@engorgio(typer=True)
-def list(
-    where: Optional[str] = None,
-    offset: int = 0,
-    limit: Optional[int] = None,
-) -> Union[Hero, List[Hero]]:
+def list() -> Union[Hero, List[Hero]]:
     "list many heros"
-    heros = Heros.list(where=where, offset=offset, limit=limit)
-    Console().print(hero)
-    return hero
+    heros = Heros.list()
+    Console().print(heros)
+    return heros
 
 
 @hero_app.command()
@@ -94,7 +88,6 @@ def delete(
 
 
 @hero_app.command()
-@engorgio(typer=True)
 def populate(
     n: int = 10,
 ) -> Hero:

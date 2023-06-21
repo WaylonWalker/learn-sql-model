@@ -1,6 +1,5 @@
 from typing import Optional
 
-from fastapi import HTTPException
 import httpx
 from pydantic import BaseModel
 from sqlmodel import Field, Relationship, SQLModel
@@ -51,11 +50,11 @@ class HeroRead(HeroBase):
         r = httpx.get(f"{config.api_client.url}/hero/{id}")
         if r.status_code != 200:
             raise RuntimeError(f"{r.status_code}:\n {r.text}")
-        return hero
+        return HeroRead.parse_obj(r.json())
 
 
 class Heros(BaseModel):
-    heros: list[Hero]
+    __root__: list[Hero]
 
     @classmethod
     def list(
@@ -64,7 +63,7 @@ class Heros(BaseModel):
         r = httpx.get(f"{config.api_client.url}/heros/")
         if r.status_code != 200:
             raise RuntimeError(f"{r.status_code}:\n {r.text}")
-        return Heros.parse_obj(r.json())
+        return Heros.parse_obj({"__root__": r.json()})
 
 
 class HeroUpdate(SQLModel):
@@ -76,8 +75,8 @@ class HeroUpdate(SQLModel):
     secret_name: Optional[str] = None
     age: Optional[int] = None
     shoe_size: Optional[int] = None
-    x: int
-    y: int
+    x: Optional[int]
+    y: Optional[int]
 
     pet_id: Optional[int] = Field(default=None, foreign_key="pet.id")
     pet: Optional[Pet] = Relationship(back_populates="hero")
