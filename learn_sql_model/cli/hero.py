@@ -55,8 +55,7 @@ def clear() -> Union[Hero, List[Hero]]:
     "list many heros"
     heros = Heros.list()
     for hero in heros.heros:
-        HeroDelete(id=hero.id).delete()
-
+        HeroDelete.delete(id=hero.id)
     return hero
 
 
@@ -81,10 +80,12 @@ def update(
 @hero_app.command()
 @engorgio(typer=True)
 def delete(
-    hero: HeroDelete,
+    hero_id: Optional[int] = typer.Argument(default=None),
 ) -> Hero:
     "delete a hero by id"
-    hero.delete()
+    hero = HeroDelete.delete(id=hero_id)
+    Console().print(hero)
+    return hero
 
 
 @hero_app.command()

@@ -10,7 +10,7 @@ from learn_sql_model.cli.hero import hero_app
 from learn_sql_model.config import get_config, get_session
 from learn_sql_model.factories.hero import HeroFactory
 from learn_sql_model.models import hero as hero_models
-from learn_sql_model.models.hero import Hero, HeroCreate, HeroRead, Heros
+from learn_sql_model.models.hero import Hero, HeroCreate, HeroDelete, HeroRead, Heros
 
 runner = CliRunner()
 client = TestClient(app)
@@ -176,6 +176,8 @@ def test_cli_get(mocker):
     assert f"name='{hero.name}'" in result.stdout
     assert f"secret_name='{hero.secret_name}'" in result.stdout
     assert httpx.get.call_count == 1
+    assert httpx.post.call_count == 0
+    assert httpx.delete.call_count == 0
 
 
 def test_cli_get_404(mocker):
@@ -191,6 +193,8 @@ def test_cli_get_404(mocker):
     assert result.exit_code == 1
     assert " ".join(result.exception.args[0].split()) == "404: Hero not found"
     assert httpx.get.call_count == 1
+    assert httpx.post.call_count == 0
+    assert httpx.delete.call_count == 0
 
 
 def test_cli_list(mocker):
@@ -226,6 +230,7 @@ def test_model_post(mocker):
     assert result == hero
     assert httpx.get.call_count == 0
     assert httpx.post.call_count == 1
+    assert httpx.delete.call_count == 0
 
 
 def test_model_post_500(mocker):
@@ -240,9 +245,10 @@ def test_model_post_500(mocker):
         hero_create.post()
     assert httpx.get.call_count == 0
     assert httpx.post.call_count == 1
+    assert httpx.delete.call_count == 0
 
 
-def test_model_read_hero(mocker, session: Session, client: TestClient):
+def test_model_read_hero(mocker):
     hero = HeroFactory().build(name="Steelman", age=25, id=1)
 
     httpx = mocker.patch.object(hero_models, "httpx")
@@ -255,9 +261,10 @@ def test_model_read_hero(mocker, session: Session, client: TestClient):
     assert hero_read.secret_name == hero.secret_name
     assert httpx.get.call_count == 1
     assert httpx.post.call_count == 0
+    assert httpx.delete.call_count == 0
 
 
-def test_model_read_hero_404(mocker, session: Session, client: TestClient):
+def test_model_read_hero_404(mocker):
     hero = HeroFactory().build(name="Steelman", age=25, id=1)
     httpx = mocker.patch.object(hero_models, "httpx")
     httpx.get.return_value = mocker.Mock()
@@ -269,3 +276,68 @@ def test_model_read_hero_404(mocker, session: Session, client: TestClient):
         assert e.value.args[0] == "404: Hero not found"
     assert httpx.get.call_count == 1
     assert httpx.post.call_count == 0
+    assert httpx.delete.call_count == 0
+
+
+def test_model_delete_hero(mocker):
+    hero = HeroFactory().build(name="Steelman", age=25, id=1)
+
+    httpx = mocker.patch.object(hero_models, "httpx")
+    httpx.delete.return_value = mocker.Mock()
+    httpx.delete.return_value.status_code = 200
+    httpx.delete.return_value.json.return_value = hero.dict()
+
+    hero_delete = HeroDelete.delete(id=hero.id)
+    assert hero_delete == {"ok": True}
+    assert httpx.get.call_count == 0
+    assert httpx.post.call_count == 0
+    assert httpx.delete.call_count == 1
+
+
+def test_model_delete_hero_404(mocker):
+    hero = HeroFactory().build(name="Steelman", age=25, id=1)
+
+    httpx = mocker.patch.object(hero_models, "httpx")
+    httpx.delete.return_value = mocker.Mock()
+    httpx.delete.return_value.status_code = 404
+    httpx.get.return_value.text = "Hero not found"
+
+    with pytest.raises(RuntimeError) as e:
+        HeroDelete.delete(id=hero.id)
+        assert e.value.args[0] == "404: Hero not found"
+    assert httpx.get.call_count == 0
+    assert httpx.post.call_count == 0
+    assert httpx.delete.call_count == 1
+
+
+def test_cli_delete_hero(mocker):
+    hero = HeroFactory().build(name="Steelman", age=25, id=1)
+
+    httpx = mocker.patch.object(hero_models, "httpx")
+    httpx.delete.return_value = mocker.Mock()
+    httpx.delete.return_value.status_code = 200
+    httpx.delete.return_value.json.return_value = hero.dict()
+
+    result = runner.invoke(hero_app, ["delete", "--hero-id", "1"])
+    assert result.exit_code == 0
+    assert "{'ok': True}" in result.stdout
+    assert httpx.get.call_count == 0
+    assert httpx.post.call_count == 0
+    assert httpx.delete.call_count == 1
+
+
+def test_cli_delete_hero_404(mocker):
+    hero = HeroFactory().build(name="Steelman", age=25, id=1)
+
+    httpx = mocker.patch.object(hero_models, "httpx")
+    httpx.delete.return_value = mocker.Mock()
+    httpx.delete.return_value.status_code = 404
+    httpx.delete.return_value.text = "Hero not found"
+    httpx.delete.return_value.json.return_value = hero.dict()
+
+    result = runner.invoke(hero_app, ["delete", "--hero-id", "999"])
+    assert result.exit_code == 1
+    assert " ".join(result.exception.args[0].split()) == "404: Hero not found"
+    assert httpx.get.call_count == 0
+    assert httpx.post.call_count == 0
+    assert httpx.delete.call_count == 1

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Dict, Optional
 
 import httpx
 from pydantic import BaseModel
@@ -93,9 +93,10 @@ class HeroUpdate(SQLModel):
 class HeroDelete(BaseModel):
     id: int
 
-    def delete(self) -> Hero:
+    @classmethod
+    def delete(self, id: int) -> Dict[str, bool]:
         r = httpx.delete(
-            f"{config.api_client.url}/hero/{self.id}",
+            f"{config.api_client.url}/hero/{id}",
         )
         if r.status_code != 200:
             raise RuntimeError(f"{r.status_code}:\n {r.text}")
