@@ -34,7 +34,7 @@ def hero():
 
 @hero_app.command()
 def get(
-    hero_id: Optional[int] = typer.Argument(default=None),
+    hero_id: Optional[int] = typer.Argument(),
 ) -> Union[Hero, List[Hero]]:
     "get one hero"
     hero = HeroRead.get(id=hero_id)
@@ -80,7 +80,7 @@ def update(
 @hero_app.command()
 @engorgio(typer=True)
 def delete(
-    hero_id: Optional[int] = typer.Argument(default=None),
+    hero_id: Optional[int] = typer.Argument(),
 ) -> Hero:
     "delete a hero by id"
     hero = HeroDelete.delete(id=hero_id)
