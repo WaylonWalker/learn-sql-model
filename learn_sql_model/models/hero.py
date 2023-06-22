@@ -2,10 +2,9 @@ from typing import Dict, Optional
 
 import httpx
 from pydantic import BaseModel
-from sqlmodel import Field, Relationship, SQLModel
+from sqlmodel import Field, SQLModel
 
 from learn_sql_model.config import config
-from learn_sql_model.models.pet import Pet
 
 
 class HeroBase(SQLModel, table=False):
@@ -13,12 +12,12 @@ class HeroBase(SQLModel, table=False):
     secret_name: str
     x: int
     y: int
-    size: int
-    age: Optional[int] = None
-    shoe_size: Optional[int] = None
+    # size: int
+    # age: Optional[int] = None
+    # shoe_size: Optional[int] = None
 
-    pet_id: Optional[int] = Field(default=None, foreign_key="pet.id")
-    pet: Optional[Pet] = Relationship(back_populates="hero")
+    # pet_id: Optional[int] = Field(default=None, foreign_key="pet.id")
+    # pet: Optional[Pet] = Relationship(back_populates="hero")
 
 
 class Hero(HeroBase, table=True):
@@ -73,13 +72,13 @@ class HeroUpdate(SQLModel):
     # all other fields, must match the model, but with Optional default None
     name: Optional[str] = None
     secret_name: Optional[str] = None
-    age: Optional[int] = None
-    shoe_size: Optional[int] = None
-    x: Optional[int]
-    y: Optional[int]
+    # age: Optional[int] = None
+    # shoe_size: Optional[int] = None
+    # x: Optional[int]
+    # y: Optional[int]
 
-    pet_id: Optional[int] = Field(default=None, foreign_key="pet.id")
-    pet: Optional[Pet] = Relationship(back_populates="hero")
+    # pet_id: Optional[int] = Field(default=None, foreign_key="pet.id")
+    # pet: Optional[Pet] = Relationship(back_populates="hero")
 
     def update(self) -> Hero:
         r = httpx.patch(
