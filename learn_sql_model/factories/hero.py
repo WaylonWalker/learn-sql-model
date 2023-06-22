@@ -10,7 +10,6 @@ class HeroFactory(ModelFactory[Hero]):
     __model__ = Hero
     __faker__ = Faker(locale="en_US")
     __set_as_default_factory_for_type__ = True
-    id = None
     pet_id = None
 
     @classmethod

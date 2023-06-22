@@ -1,13 +1,15 @@
 from pathlib import Path
 from typing import Annotated
 
-import alembic
-from alembic.config import Config
 import copier
 import typer
 
 from learn_sql_model.cli.common import verbose_callback
 from learn_sql_model.config import get_config
+from learn_sql_model.optional import _optional_import_
+
+alembic = _optional_import_('alembic', group='manage')
+Config = _optional_import_('alembic.config', 'Config', group='manage')
 
 model_app = typer.Typer()
 

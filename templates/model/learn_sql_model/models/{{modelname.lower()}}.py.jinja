@@ -12,7 +12,7 @@ class {{ modelname }}Base(SQLModel, table=False):
 
 
 class {{ modelname }}({{ modelname }}Base, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int = Field(default=None, primary_key=True)
 
 
 class {{ modelname }}Create({{ modelname }}Base):

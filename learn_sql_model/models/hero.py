@@ -6,6 +6,9 @@ from sqlmodel import Field, SQLModel
 
 from learn_sql_model.config import config
 
+from learn_sql_model.optional import optional
+from learn_sql_model.models.pet import Pet
+
 
 class HeroBase(SQLModel, table=False):
     name: str
@@ -21,7 +24,7 @@ class HeroBase(SQLModel, table=False):
 
 
 class Hero(HeroBase, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int = Field(default=None, primary_key=True)
 
 
 class HeroCreate(HeroBase):
@@ -65,20 +68,9 @@ class Heros(BaseModel):
         return Heros.parse_obj({"__root__": r.json()})
 
 
-class HeroUpdate(SQLModel):
-    # id is required to update the hero
+@optional
+class HeroUpdate(HeroBase):
     id: int
-
-    # all other fields, must match the model, but with Optional default None
-    name: Optional[str] = None
-    secret_name: Optional[str] = None
-    # age: Optional[int] = None
-    # shoe_size: Optional[int] = None
-    # x: Optional[int]
-    # y: Optional[int]
-
-    # pet_id: Optional[int] = Field(default=None, foreign_key="pet.id")
-    # pet: Optional[Pet] = Relationship(back_populates="hero")
 
     def update(self) -> Hero:
         r = httpx.patch(

@@ -1,5 +1,8 @@
+from typing import List, Optional
 import textwrap
+import inspect
 
+from pydantic import BaseModel
 
 def _optional_import_(
     module: str,
@@ -61,3 +64,33 @@ def _optional_import_(
                 self._failed_import()
 
         return _failed_import()
+
+
+# def optional(fields: Optional[List[str]]=None, required: Optional[List[str]]=None):
+#     def decorator(cls):
+#         def wrapper(*args, **kwargs):
+#             if fields is None:
+#                 fields = cls.__fields__
+#             if required is None:
+#                 required = []
+#
+#             for field in fields:
+#                 if field not in required:
+#                     cls.__fields__[field].required = False
+#             return _cls
+#         return wrapper
+#     return decorator
+#
+    #
+def optional(*fields):
+    def dec(_cls):
+        for field in fields:
+            _cls.__fields__[field].required = False
+        return _cls
+
+    if fields and inspect.isclass(fields[0]) and issubclass(fields[0], BaseModel):
+        cls = fields[0]
+        fields = cls.__fields__
+        return dec(cls)
+    return dec
+
