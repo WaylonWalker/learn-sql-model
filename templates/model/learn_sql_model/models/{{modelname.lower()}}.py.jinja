@@ -1,134 +1,81 @@
-from typing import Optional
+from typing import Dict, Optional
 
-from fastapi import HTTPException
 import httpx
 from pydantic import BaseModel
-from sqlmodel import Field, Relationship, SQLModel, Session, select
+from sqlmodel import Field, SQLModel
 
 from learn_sql_model.config import config
-from learn_sql_model.models.pet import Pet
 
 
-class {{ model }}Base(SQLModel, table=False):
-    name: str
-    secret_name: str
-    x: int
-    y: int
-    size: int
-    age: Optional[int] = None
-    shoe_size: Optional[int] = None
-
-    pet_id: Optional[int] = Field(default=None, foreign_key="pet.id")
-    pet: Optional[Pet] = Relationship(back_populates="{{ model.lower() }}")
+class {{ modelname }}Base(SQLModel, table=False):
+    # put model attributes here
 
 
-class {{ model }}({{ model }}Base, table=True):
+class {{ modelname }}({{ modelname }}Base, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
 
 
-class {{ model }}Create({{ model }}Base):
+class {{ modelname }}Create({{ modelname }}Base):
     ...
 
-    def post(self) -> {{ model }}:
+    def post(self) -> {{ modelname }}:
         r = httpx.post(
-            f"{config.api_client.url}/{{ model.lower() }}/",
+            f"{config.api_client.url}/{{ modelname }}/",
             json=self.dict(),
         )
         if r.status_code != 200:
             raise RuntimeError(f"{r.status_code}:\n {r.text}")
 
-        return {{ model }}.parse_obj(r.json())
+        return {{ modelname }}.parse_obj(r.json())
 
 
-class {{ model }}Read({{ model }}Base):
+class {{ modelname }}Read({{ modelname }}Base):
     id: int
 
     @classmethod
     def get(
         cls,
         id: int,
-    ) -> {{ model }}:
-        with config.database.session as session:
-            {{ model.lower() }} = session.get({{ model }}, id)
-            if not {{ model.lower() }}:
-                raise HTTPException(status_code=404, detail="{{ model }} not found")
-        return {{ model.lower() }}
+    ) -> {{ modelname }}:
+        r = httpx.get(f"{config.api_client.url}/{{ modelname }}/{id}")
+        if r.status_code != 200:
+            raise RuntimeError(f"{r.status_code}:\n {r.text}")
+        return {{ modelname }}Read.parse_obj(r.json())
 
 
-class {{ model }}s(BaseModel):
-    {{ model.lower() }}s: list[{{ model }}]
+class {{ modelname }}s(BaseModel):
+    __root__: list[{{ modelname }}]
 
     @classmethod
     def list(
         self,
-        where=None,
-        offset=0,
-        limit=None,
-        session: Session = None,
-    ) -> {{ model }}:
-        # with config.database.session as session:
-
-        def get_{{ model.lower() }}s(session, where, offset, limit):
-            statement = select({{ model }})
-            if where != "None" and where is not None:
-                from sqlmodel import text
-
-                statement = statement.where(text(where))
-            statement = statement.offset(offset).limit(limit)
-            {{ model.lower() }}s = session.exec(statement).all()
-            return {{ model }}s({{ model.lower() }}s={{ model.lower() }}s)
-
-        if session is None:
-
-            r = httpx.get(f"{config.api_client.url}/{{ model.lower() }}s/")
-            if r.status_code != 200:
-                raise RuntimeError(f"{r.status_code}:\n {r.text}")
-            return {{ model }}s.parse_obj(r.json())
-
-        return get_{{ model.lower() }}s(session, where, offset, limit)
+    ) -> {{ modelname }}:
+        r = httpx.get(f"{config.api_client.url}/{{ modelname }}s/")
+        if r.status_code != 200:
+            raise RuntimeError(f"{r.status_code}:\n {r.text}")
+        return {{ modelname }}s.parse_obj({"__root__": r.json()})
 
 
-class {{ model }}Update(SQLModel):
-    # id is required to update the {{ model.lower() }}
+class {{ modelname }}Update(SQLModel):
+    # id is required to update the {{ modelname }}
     id: int
 
-    # all other fields, must match the model, but with Optional default None
-    name: Optional[str] = None
-    secret_name: Optional[str] = None
-    age: Optional[int] = None
-    shoe_size: Optional[int] = None
-    x: int
-    y: int
-
-    pet_id: Optional[int] = Field(default=None, foreign_key="pet.id")
-    pet: Optional[Pet] = Relationship(back_populates="{{ model.lower() }}")
-
-    def update(self, session: Session = None) -> {{ model }}:
-        if session is not None:
-            db_{{ model.lower() }} = session.get({{ model }}, self.id)
-            if not db_{{ model.lower() }}:
-                raise HTTPException(status_code=404, detail="{{ model }} not found")
-            for key, value in self.dict(exclude_unset=True).items():
-                setattr(db_{{ model.lower() }}, key, value)
-            session.add(db_{{ model.lower() }})
-            session.commit()
-            session.refresh(db_{{ model.lower() }})
-            return db_{{ model.lower() }}
-
+    def update(self) -> {{ modelname }}:
         r = httpx.patch(
-            f"{config.api_client.url}/{{ model.lower() }}/",
+            f"{config.api_client.url}/{{ modelname }}/",
             json=self.dict(),
         )
         if r.status_code != 200:
             raise RuntimeError(f"{r.status_code}:\n {r.text}")
 
 
-class {{ model }}Delete(BaseModel):
+class {{ modelname }}Delete(BaseModel):
     id: int
 
-    def delete(self) -> {{ model }}:
+    @classmethod
+    def delete(self, id: int) -> Dict[str, bool]:
         r = httpx.delete(
-            f"{config.api_client.url}/{{ model.lower() }}/{self.id}",
+            f"{config.api_client.url}/{{ modelname }}/{id}",
         )
         if r.status_code != 200:
             raise RuntimeError(f"{r.status_code}:\n {r.text}")

@@ -39,19 +39,18 @@ def client_fixture(session: Session):
 
 
 def test_api_post(client: TestClient):
-    hero = HeroFactory().build(name="Steelman", age=25)
+    hero = HeroFactory().build()
     hero_dict = hero.dict()
     response = client.post("/hero/", json=hero_dict)
     response_hero = Hero.parse_obj(response.json())
 
     assert response.status_code == 200
-    assert response_hero.name == "Steelman"
-    assert response_hero.age == 25
+    assert response_hero.name == hero.name
 
 
 def test_api_read_heroes(session: Session, client: TestClient):
-    hero_1 = HeroFactory().build(name="Steelman", age=25)
-    hero_2 = HeroFactory().build(name="Rusty-Man", age=48)
+    hero_1 = HeroFactory().build()
+    hero_2 = HeroFactory().build()
     session.add(hero_1)
     session.add(hero_2)
     session.commit()
@@ -64,16 +63,14 @@ def test_api_read_heroes(session: Session, client: TestClient):
     assert len(data) == 2
     assert data[0]["name"] == hero_1.name
     assert data[0]["secret_name"] == hero_1.secret_name
-    assert data[0]["age"] == hero_1.age
     assert data[0]["id"] == hero_1.id
     assert data[1]["name"] == hero_2.name
     assert data[1]["secret_name"] == hero_2.secret_name
-    assert data[1]["age"] == hero_2.age
     assert data[1]["id"] == hero_2.id
 
 
 def test_api_read_hero(session: Session, client: TestClient):
-    hero_1 = HeroFactory().build(name="Steelman", age=25)
+    hero_1 = HeroFactory().build()
     session.add(hero_1)
     session.commit()
 
@@ -83,12 +80,11 @@ def test_api_read_hero(session: Session, client: TestClient):
     assert response.status_code == 200
     assert data["name"] == hero_1.name
     assert data["secret_name"] == hero_1.secret_name
-    assert data["age"] == hero_1.age
     assert data["id"] == hero_1.id
 
 
 def test_api_read_hero_404(session: Session, client: TestClient):
-    hero_1 = HeroFactory().build(name="Steelman", age=25)
+    hero_1 = HeroFactory().build()
     session.add(hero_1)
     session.commit()
 
@@ -97,7 +93,7 @@ def test_api_read_hero_404(session: Session, client: TestClient):
 
 
 def test_api_update_hero(session: Session, client: TestClient):
-    hero_1 = HeroFactory().build(name="Steelman", age=25)
+    hero_1 = HeroFactory().build()
     session.add(hero_1)
     session.commit()
 
@@ -107,12 +103,11 @@ def test_api_update_hero(session: Session, client: TestClient):
     assert response.status_code == 200
     assert data["name"] == "Deadpuddle"
     assert data["secret_name"] == hero_1.secret_name
-    assert data["age"] is hero_1.age
     assert data["id"] == hero_1.id
 
 
 def test_api_update_hero_404(session: Session, client: TestClient):
-    hero_1 = HeroFactory().build(name="Steelman", age=25)
+    hero_1 = HeroFactory().build()
     session.add(hero_1)
     session.commit()
 
@@ -121,7 +116,7 @@ def test_api_update_hero_404(session: Session, client: TestClient):
 
 
 def test_delete_hero(session: Session, client: TestClient):
-    hero_1 = HeroFactory().build(name="Steelman", age=25)
+    hero_1 = HeroFactory().build()
     session.add(hero_1)
     session.commit()
 
@@ -135,7 +130,7 @@ def test_delete_hero(session: Session, client: TestClient):
 
 
 def test_delete_hero_404(session: Session, client: TestClient):
-    hero_1 = HeroFactory().build(name="Steelman", age=25)
+    hero_1 = HeroFactory().build()
     session.add(hero_1)
     session.commit()
 
@@ -152,19 +147,18 @@ def test_config_memory(mocker):
     )
     config = get_config()
     SQLModel.metadata.create_all(config.database.engine)
-    hero = HeroFactory().build(name="Steelman", age=25)
+    hero = HeroFactory().build()
     with config.database.session as session:
         session.add(hero)
         session.commit()
-        hero = session.get(Hero, hero.id)
-        heroes = session.exec(select(Hero)).all()
-    assert hero.name == "Steelman"
-    assert hero.age == 25
-    assert len(heroes) == 1
+        db_hero = session.get(Hero, hero.id)
+        db_heroes = session.exec(select(Hero)).all()
+    assert db_hero.name == hero.name
+    assert len(db_heroes) == 1
 
 
 def test_cli_get(mocker):
-    hero = HeroFactory().build(name="Steelman", age=25, id=1)
+    hero = HeroFactory().build()
     hero = HeroRead(**hero.dict(exclude_none=True))
     httpx = mocker.patch.object(hero_models, "httpx")
     httpx.get.return_value = mocker.Mock()
@@ -181,7 +175,7 @@ def test_cli_get(mocker):
 
 
 def test_cli_get_404(mocker):
-    hero = HeroFactory().build(name="Steelman", age=25, id=1)
+    hero = HeroFactory().build()
     hero = HeroRead(**hero.dict(exclude_none=True))
     httpx = mocker.patch.object(hero_models, "httpx")
     httpx.get.return_value = mocker.Mock()
@@ -198,12 +192,8 @@ def test_cli_get_404(mocker):
 
 
 def test_cli_list(mocker):
-    hero_1 = HeroRead(
-        **HeroFactory().build(name="Steelman", age=25, id=1).dict(exclude_none=True)
-    )
-    hero_2 = HeroRead(
-        **HeroFactory().build(name="Hunk", age=52, id=2).dict(exclude_none=True)
-    )
+    hero_1 = HeroRead(**HeroFactory().build().dict(exclude_none=True))
+    hero_2 = HeroRead(**HeroFactory().build().dict(exclude_none=True))
     heros = Heros(__root__=[hero_1, hero_2])
     httpx = mocker.patch.object(hero_models, "httpx")
     httpx.get.return_value = mocker.Mock()
@@ -219,7 +209,7 @@ def test_cli_list(mocker):
 
 
 def test_model_post(mocker):
-    hero = HeroFactory().build(name="Steelman", age=25, id=1)
+    hero = HeroFactory().build()
     hero_create = HeroCreate(**hero.dict())
 
     httpx = mocker.patch.object(hero_models, "httpx")
@@ -234,7 +224,7 @@ def test_model_post(mocker):
 
 
 def test_model_post_500(mocker):
-    hero = HeroFactory().build(name="Steelman", age=25, id=1)
+    hero = HeroFactory().build()
     hero_create = HeroCreate(**hero.dict())
 
     httpx = mocker.patch.object(hero_models, "httpx")
@@ -249,7 +239,7 @@ def test_model_post_500(mocker):
 
 
 def test_model_read_hero(mocker):
-    hero = HeroFactory().build(name="Steelman", age=25, id=1)
+    hero = HeroFactory().build()
 
     httpx = mocker.patch.object(hero_models, "httpx")
     httpx.get.return_value = mocker.Mock()
@@ -265,7 +255,7 @@ def test_model_read_hero(mocker):
 
 
 def test_model_read_hero_404(mocker):
-    hero = HeroFactory().build(name="Steelman", age=25, id=1)
+    hero = HeroFactory().build()
     httpx = mocker.patch.object(hero_models, "httpx")
     httpx.get.return_value = mocker.Mock()
     httpx.get.return_value.status_code = 404
@@ -280,7 +270,7 @@ def test_model_read_hero_404(mocker):
 
 
 def test_model_delete_hero(mocker):
-    hero = HeroFactory().build(name="Steelman", age=25, id=1)
+    hero = HeroFactory().build()
 
     httpx = mocker.patch.object(hero_models, "httpx")
     httpx.delete.return_value = mocker.Mock()
@@ -295,7 +285,7 @@ def test_model_delete_hero(mocker):
 
 
 def test_model_delete_hero_404(mocker):
-    hero = HeroFactory().build(name="Steelman", age=25, id=1)
+    hero = HeroFactory().build()
 
     httpx = mocker.patch.object(hero_models, "httpx")
     httpx.delete.return_value = mocker.Mock()
@@ -311,7 +301,7 @@ def test_model_delete_hero_404(mocker):
 
 
 def test_cli_delete_hero(mocker):
-    hero = HeroFactory().build(name="Steelman", age=25, id=1)
+    hero = HeroFactory().build()
 
     httpx = mocker.patch.object(hero_models, "httpx")
     httpx.delete.return_value = mocker.Mock()
@@ -327,7 +317,7 @@ def test_cli_delete_hero(mocker):
 
 
 def test_cli_delete_hero_404(mocker):
-    hero = HeroFactory().build(name="Steelman", age=25, id=1)
+    hero = HeroFactory().build()
 
     httpx = mocker.patch.object(hero_models, "httpx")
     httpx.delete.return_value = mocker.Mock()

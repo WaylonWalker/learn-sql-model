@@ -1,14 +1,12 @@
 from faker import Faker
 from polyfactory.factories.pydantic_factory import ModelFactory
 
-from learn_sql_model.models.{{modelname.lower()}} import {{modelname}}
+from learn_sql_model.factories.pet import PetFactory
+from learn_sql_model.models.{{ modelname }} import {{ modelname }}
+from learn_sql_model.models.pet import Pet
 
 
-class {{modelname}}Factory(ModelFactory[{{modelname.lower()}}]):
-    __model__ = {{modelname}}
+class {{ modelname }}Factory(ModelFactory[{{ modelname }}]):
+    __model__ = {{ modelname }}
     __faker__ = Faker(locale="en_US")
     __set_as_default_factory_for_type__ = True
-    id = None
-
-    __random_seed__ = 10
-

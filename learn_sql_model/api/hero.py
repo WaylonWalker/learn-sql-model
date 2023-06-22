@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 
-from learn_sql_model.api.websocket_connection_manager import manager
 from learn_sql_model.config import get_session
 from learn_sql_model.models.hero import Hero, HeroCreate, HeroRead, HeroUpdate, Heros
 
@@ -38,7 +37,7 @@ def post_hero(
     session.add(db_hero)
     session.commit()
     session.refresh(db_hero)
-    await manager.broadcast({hero.json()}, id=1)
+    # await manager.broadcast({hero.json()}, id=1)
     return db_hero
 
 
@@ -57,7 +56,7 @@ def patch_hero(
     session.add(db_hero)
     session.commit()
     session.refresh(db_hero)
-    await manager.broadcast({hero.json()}, id=1)
+    # await manager.broadcast({hero.json()}, id=1)
     return db_hero
 
 
@@ -73,7 +72,7 @@ def delete_hero(
         raise HTTPException(status_code=404, detail="Hero not found")
     session.delete(hero)
     session.commit()
-    await manager.broadcast(f"deleted hero {hero_id}", id=1)
+    # await manager.broadcast(f"deleted hero {hero_id}", id=1)
     return {"ok": True}
 
 
