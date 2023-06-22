@@ -15,7 +15,7 @@ def on_startup() -> None:
 
 
 @hero_router.get("/hero/{hero_id}")
-async def get_hero(
+def get_hero(
     *,
     session: Session = Depends(get_session),
     hero_id: int,
@@ -28,7 +28,7 @@ async def get_hero(
 
 
 @hero_router.post("/hero/")
-async def post_hero(
+def post_hero(
     *,
     session: Session = Depends(get_session),
     hero: HeroCreate,
@@ -43,7 +43,7 @@ async def post_hero(
 
 
 @hero_router.patch("/hero/")
-async def patch_hero(
+def patch_hero(
     *,
     session: Session = Depends(get_session),
     hero: HeroUpdate,
@@ -62,7 +62,7 @@ async def patch_hero(
 
 
 @hero_router.delete("/hero/{hero_id}")
-async def delete_hero(
+def delete_hero(
     *,
     session: Session = Depends(get_session),
     hero_id: int,
@@ -78,7 +78,7 @@ async def delete_hero(
 
 
 @hero_router.get("/heros/")
-async def get_heros(
+def get_heros(
     *,
     session: Session = Depends(get_session),
 ) -> Heros:
