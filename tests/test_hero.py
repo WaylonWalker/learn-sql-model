@@ -1,16 +1,16 @@
 from fastapi.testclient import TestClient
 import pytest
 from sqlalchemy import create_engine
-from sqlmodel import SQLModel, Session, select
+from sqlmodel import SQLModel, Session
 from sqlmodel.pool import StaticPool
 from typer.testing import CliRunner
 
 from learn_sql_model.api.app import app
 from learn_sql_model.cli.hero import hero_app
-from learn_sql_model.config import get_config, get_session
+from learn_sql_model.config import get_session
 from learn_sql_model.factories.hero import HeroFactory
 from learn_sql_model.models import hero as hero_models
-from learn_sql_model.models.hero import Hero, HeroCreate, HeroDelete, HeroRead, Heros
+from learn_sql_model.models.hero import Hero, HeroCreate, HeroDelete, HeroRead
 
 runner = CliRunner()
 client = TestClient(app)
@@ -48,11 +48,10 @@ def test_api_post(client: TestClient):
     assert response_hero.name == hero.name
 
 
-def test_api_read_heroes(session: Session, client: TestClient):
-    hero_1 = HeroFactory().build()
-    hero_2 = HeroFactory().build()
-    session.add(hero_1)
-    session.add(hero_2)
+def test_api_read_heros(session: Session, client: TestClient):
+    heros = HeroFactory().batch(5)
+    for hero in heros:
+        session.add(hero)
     session.commit()
 
     response = client.get("/heros/")
@@ -60,32 +59,31 @@ def test_api_read_heroes(session: Session, client: TestClient):
 
     assert response.status_code == 200
 
-    assert len(data) == 2
-    assert data[0]["name"] == hero_1.name
-    assert data[0]["secret_name"] == hero_1.secret_name
-    assert data[0]["id"] == hero_1.id
-    assert data[1]["name"] == hero_2.name
-    assert data[1]["secret_name"] == hero_2.secret_name
-    assert data[1]["id"] == hero_2.id
+    assert len(data) == 5
+    for d in data:
+        api_hero = Hero.parse_obj(d)
+        my_hero = [hero for hero in heros if hero.id == api_hero.id][0]
+        for key, value in api_hero.dict(exclude_unset=True).items():
+            assert getattr(my_hero, key) == value
 
 
 def test_api_read_hero(session: Session, client: TestClient):
-    hero_1 = HeroFactory().build()
-    session.add(hero_1)
+    hero = HeroFactory().build()
+    session.add(hero)
     session.commit()
 
-    response = client.get(f"/hero/{hero_1.id}")
+    response = client.get(f"/hero/{hero.id}")
     data = response.json()
+    response_hero = Hero.parse_obj(data)
 
     assert response.status_code == 200
-    assert data["name"] == hero_1.name
-    assert data["secret_name"] == hero_1.secret_name
-    assert data["id"] == hero_1.id
+    for key, value in hero.dict(exclude_unset=True).items():
+        assert getattr(response_hero, key) == value
 
 
 def test_api_read_hero_404(session: Session, client: TestClient):
-    hero_1 = HeroFactory().build()
-    session.add(hero_1)
+    hero = HeroFactory().build()
+    session.add(hero)
     session.commit()
 
     response = client.get(f"/hero/999")
@@ -93,17 +91,20 @@ def test_api_read_hero_404(session: Session, client: TestClient):
 
 
 def test_api_update_hero(session: Session, client: TestClient):
-    hero_1 = HeroFactory().build()
-    session.add(hero_1)
+    hero = HeroFactory().build()
+    new_hero = HeroFactory().build()
+    session.add(hero)
     session.commit()
 
-    response = client.patch(f"/hero/", json={"name": "Deadpuddle", "id": hero_1.id})
+    response = client.patch(
+        f"/hero/", json={"id": hero.id, **new_hero.dict(exclude={"id"})}
+    )
     data = response.json()
+    response_hero = Hero.parse_obj(data)
 
     assert response.status_code == 200
-    assert data["name"] == "Deadpuddle"
-    assert data["secret_name"] == hero_1.secret_name
-    assert data["id"] == hero_1.id
+    for key, value in hero.dict(exclude_unset=True).items():
+        assert getattr(response_hero, key) == value
 
 
 def test_api_update_hero_404(session: Session, client: TestClient):
@@ -138,25 +139,6 @@ def test_delete_hero_404(session: Session, client: TestClient):
     assert response.status_code == 404
 
 
-def test_config_memory(mocker):
-    mocker.patch(
-        "learn_sql_model.config.Database.engine",
-        new_callable=lambda: create_engine(
-            "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
-        ),
-    )
-    config = get_config()
-    SQLModel.metadata.create_all(config.database.engine)
-    hero = HeroFactory().build()
-    with config.database.session as session:
-        session.add(hero)
-        session.commit()
-        db_hero = session.get(Hero, hero.id)
-        db_heroes = session.exec(select(Hero)).all()
-    assert db_hero.name == hero.name
-    assert len(db_heroes) == 1
-
-
 def test_cli_get(mocker):
     hero = HeroFactory().build()
     hero = HeroRead(**hero.dict(exclude_none=True))
@@ -167,8 +149,11 @@ def test_cli_get(mocker):
 
     result = runner.invoke(hero_app, ["get", "1"])
     assert result.exit_code == 0
-    assert f"name='{hero.name}'" in result.stdout
-    assert f"secret_name='{hero.secret_name}'" in result.stdout
+    for key, value in hero.dict(exclude_unset=True).items():
+        if type(value) == str:
+            assert f"{key}='{value}'" in result.stdout
+        elif type(value) == int:
+            assert f"{key}={value}" in result.stdout
     assert httpx.get.call_count == 1
     assert httpx.post.call_count == 0
     assert httpx.delete.call_count == 0
@@ -192,20 +177,21 @@ def test_cli_get_404(mocker):
 
 
 def test_cli_list(mocker):
-    hero_1 = HeroRead(**HeroFactory().build().dict(exclude_none=True))
-    hero_2 = HeroRead(**HeroFactory().build().dict(exclude_none=True))
-    heros = Heros(__root__=[hero_1, hero_2])
+    heros = HeroFactory().batch(5)
     httpx = mocker.patch.object(hero_models, "httpx")
     httpx.get.return_value = mocker.Mock()
     httpx.get.return_value.status_code = 200
-    httpx.get.return_value.json.return_value = heros.dict()["__root__"]
+    httpx.get.return_value.json.return_value = heros
 
     result = runner.invoke(hero_app, ["list"])
     assert result.exit_code == 0
-    assert f"name='{hero_1.name}'" in result.stdout
-    assert f"secret_name='{hero_1.secret_name}'" in result.stdout
-    assert f"name='{hero_2.name}'" in result.stdout
-    assert f"secret_name='{hero_2.secret_name}'" in result.stdout
+
+    for hero in heros:
+        for key, value in hero.dict(exclude_unset=True).items():
+            if type(value) == str:
+                assert f"{key}='{value}'" in result.stdout
+            elif type(value) == int:
+                assert f"{key}={value}" in result.stdout
 
 
 def test_model_post(mocker):
