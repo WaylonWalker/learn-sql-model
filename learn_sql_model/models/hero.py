@@ -1,13 +1,11 @@
-from typing import Dict, Optional
+from typing import Dict
 
 import httpx
 from pydantic import BaseModel
 from sqlmodel import Field, SQLModel
 
 from learn_sql_model.config import config
-
 from learn_sql_model.optional import optional
-from learn_sql_model.models.pet import Pet
 
 
 class HeroBase(SQLModel, table=False):
@@ -75,7 +73,7 @@ class HeroUpdate(HeroBase):
     def update(self) -> Hero:
         r = httpx.patch(
             f"{config.api_client.url}/hero/",
-            json=self.dict(),
+            json=self.dict(exclude_none=True),
         )
         if r.status_code != 200:
             raise RuntimeError(f"{r.status_code}:\n {r.text}")

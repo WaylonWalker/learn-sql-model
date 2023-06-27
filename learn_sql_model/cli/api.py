@@ -29,6 +29,8 @@ def run(
         help="show the log messages",
     ),
 ):
+    import uvicorn
+
     uvicorn.run(**get_config().api_server.dict())
 
 

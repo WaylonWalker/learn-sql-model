@@ -54,7 +54,7 @@ def list() -> Union[Hero, List[Hero]]:
 def clear() -> Union[Hero, List[Hero]]:
     "list many heros"
     heros = Heros.list()
-    for hero in heros.heros:
+    for hero in heros.__root__:
         HeroDelete.delete(id=hero.id)
     return hero
 

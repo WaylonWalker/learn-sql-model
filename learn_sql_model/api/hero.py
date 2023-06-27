@@ -8,13 +8,13 @@ hero_router = APIRouter()
 
 
 @hero_router.on_event("startup")
-def on_startup() -> None:
+async def on_startup() -> None:
     # SQLModel.metadata.create_all(get_config().database.engine)
     ...
 
 
 @hero_router.get("/hero/{hero_id}")
-def get_hero(
+async def get_hero(
     *,
     session: Session = Depends(get_session),
     hero_id: int,
@@ -27,7 +27,7 @@ def get_hero(
 
 
 @hero_router.post("/hero/")
-def post_hero(
+async def post_hero(
     *,
     session: Session = Depends(get_session),
     hero: HeroCreate,
@@ -42,7 +42,7 @@ def post_hero(
 
 
 @hero_router.patch("/hero/")
-def patch_hero(
+async def patch_hero(
     *,
     session: Session = Depends(get_session),
     hero: HeroUpdate,
@@ -61,7 +61,7 @@ def patch_hero(
 
 
 @hero_router.delete("/hero/{hero_id}")
-def delete_hero(
+async def delete_hero(
     *,
     session: Session = Depends(get_session),
     hero_id: int,
@@ -77,11 +77,11 @@ def delete_hero(
 
 
 @hero_router.get("/heros/")
-def get_heros(
+async def get_heros(
     *,
     session: Session = Depends(get_session),
 ) -> Heros:
     "get all heros"
     statement = select(Hero)
-    heros = session.exec(statement).all()
+    heros = session.execute(statement).all()
     return Heros(__root__=heros)

@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 from fastapi import Depends
 from pydantic import BaseModel, BaseSettings, validator
 from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from sqlmodel import Session
 
 from learn_sql_model.standard_config import load
@@ -18,6 +19,7 @@ class ApiServer(BaseModel):
     reload: bool = True
     log_level: str = "info"
     host: str = "0.0.0.0"
+    workers: int = 1
 
 
 class ApiClient(BaseModel):
@@ -42,7 +44,16 @@ class Database:
 
     @property
     def engine(self) -> "Engine":
-        return create_engine(self.config.database_url)
+        try:
+            return self._engine
+        except AttributeError:
+            self._engine = create_engine(
+                self.config.database_url,
+                connect_args={"check_same_thread": False},
+                pool_recycle=3600,
+                pool_pre_ping=True,
+            )
+            return self._engine
 
     @property
     def session(self) -> "Session":
@@ -87,11 +98,20 @@ def get_config(overrides: dict = {}) -> Config:
     return config
 
 
+config = get_config()
+engine = create_engine(
+    config.database_url,
+    connect_args={"check_same_thread": False},
+    pool_recycle=3600,
+    pool_pre_ping=True,
+)
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
 def get_session() -> "Session":
-    config = get_config()
-    engine = create_engine(config.database_url)
     with Session(engine) as session:
-        yield session
+        yield SessionLocal()
 
 
 async def reset_db_state(config: Config = None) -> None:
