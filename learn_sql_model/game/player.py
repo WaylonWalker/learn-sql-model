@@ -16,7 +16,7 @@ class Player:
         self.hero = HeroCreate(**hero.dict()).post()
 
         self.game = game
-        self.others = Heros(heros=[])
+        self.others = [] #Heros(heros=[])
         self.width = 16
         self.height = 16
         self.white = (255, 255, 255)

@@ -83,5 +83,5 @@ async def get_heros(
 ) -> Heros:
     "get all heros"
     statement = select(Hero)
-    heros = session.execute(statement).all()
+    heros = session.exec(statement).all()
     return Heros(__root__=heros)

@@ -27,7 +27,6 @@ class ApiClient(BaseModel):
     protocol: str = "https"
     url: str = f"{protocol}://{host}"
 
-
 class Database:
     def __init__(self, config: "Config" = None) -> None:
         if config is None:
@@ -41,19 +40,22 @@ class Database:
                 "transactions": None,
             }
             self.db_state = ContextVar("db_state", default=self.db_state_default.copy())
+            
+        self.db_conf = {}
+        if 'sqlite' in self.config.database_url:
+            self.db_conf = {
+                'connect_args': {"check_same_thread": False},
+                'pool_recycle': 3600,
+                'pool_pre_ping': True,
+            }
+        self._engine = create_engine(
+                self.config.database_url,
+                **self.db_conf
+            )
 
     @property
     def engine(self) -> "Engine":
-        try:
-            return self._engine
-        except AttributeError:
-            self._engine = create_engine(
-                self.config.database_url,
-                connect_args={"check_same_thread": False},
-                pool_recycle=3600,
-                pool_pre_ping=True,
-            )
-            return self._engine
+        return self._engine
 
     @property
     def session(self) -> "Session":
@@ -99,19 +101,14 @@ def get_config(overrides: dict = {}) -> Config:
 
 
 config = get_config()
-engine = create_engine(
-    config.database_url,
-    connect_args={"check_same_thread": False},
-    pool_recycle=3600,
-    pool_pre_ping=True,
-)
+database = get_database()
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=database.engine)
 
 
 def get_session() -> "Session":
-    with Session(engine) as session:
-        yield SessionLocal()
+    with Session(database.engine) as session:
+        yield session
 
 
 async def reset_db_state(config: Config = None) -> None:
