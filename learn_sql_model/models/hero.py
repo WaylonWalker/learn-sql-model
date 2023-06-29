@@ -1,6 +1,7 @@
-from typing import Dict
+from typing import Dict, Optional
 
 import httpx
+import pydantic
 from pydantic import BaseModel
 from sqlmodel import Field, SQLModel
 
@@ -13,12 +14,23 @@ class HeroBase(SQLModel, table=False):
     secret_name: str
     x: int
     y: int
-    # size: int
+    size: Optional[int]
+    flashlight_strength: Optional[int] = 1000
+    flashlight_angle: Optional[int] = 0
+    lanturn_strength: Optional[int] = 100
     # age: Optional[int] = None
     # shoe_size: Optional[int] = None
 
     # pet_id: Optional[int] = Field(default=None, foreign_key="pet.id")
     # pet: Optional[Pet] = Relationship(back_populates="hero")
+
+    @pydantic.validator("size", pre=True, always=True)
+    def validate_size(cls, v):
+        if v is None:
+            return 50
+        if v <= 0:
+            raise ValueError("size must be > 0")
+        return v
 
 
 class Hero(HeroBase, table=True):

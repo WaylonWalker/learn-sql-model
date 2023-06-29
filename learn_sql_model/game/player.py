@@ -1,5 +1,6 @@
+from learn_sql_model.config import get_config
 from learn_sql_model.console import console
-from learn_sql_model.models.hero import HeroCreate, HeroDelete, HeroUpdate, Heros
+from learn_sql_model.models.hero import Hero, HeroCreate, HeroUpdate, Heros
 from learn_sql_model.optional import _optional_import_
 
 pygame = _optional_import_("pygame", group="game")
@@ -12,11 +13,18 @@ HeroFactory = _optional_import_(
 
 class Player:
     def __init__(self, game):
-        hero = HeroFactory().build(size=25, x=100, y=100)
+        hero = HeroFactory().build(
+            size=25,
+            x=100,
+            y=100,
+            flashlight_strength=1000,
+            lanturn_strength=100,
+            flashlight_angle=0,
+        )
         self.hero = HeroCreate(**hero.dict()).post()
 
         self.game = game
-        self.others = [] #Heros(heros=[])
+        self.others = []  # Heros(heros=[])
         self.width = 16
         self.height = 16
         self.white = (255, 255, 255)
@@ -42,13 +50,21 @@ class Player:
     def rename_hero(self):
         old_hero = self.hero
         hero = HeroFactory().build(
-            size=self.hero.size, x=self.hero.x, y=self.hero.y, id=old_hero.id
+            size=self.hero.size,
+            x=self.hero.x,
+            y=self.hero.y,
+            id=old_hero.id,
+            flashlight_strength=self.hero.flashlight_strength,
+            lanturn_strength=self.hero.lanturn_strength,
         )
         self.hero = HeroCreate(**hero.dict()).post()
 
     def quit(self):
         try:
-            HeroDelete(id=self.hero.id).delete()
+            session = get_config().database.session
+            hero = session.get(Hero, self.hero.id)
+            session.delete(hero)
+            session.commit()
         except RuntimeError:
             pass
 
@@ -158,6 +174,10 @@ class Player:
             movement_vector = end_pos - start_pos
             try:
                 movement_direction = movement_vector.normalize()
+            except ValueError:
+                end_pos = pygame.math.Vector2(self.hero.x + 128, self.hero.y + 128)
+                movement_vector = end_pos - start_pos
+                movement_direction = movement_vector.normalize()
             except ZeroDivisionError:
                 end_pos = pygame.math.Vector2(self.hero.x + 128, self.hero.y + 128)
                 movement_vector = end_pos - start_pos
@@ -200,7 +220,7 @@ class Player:
         )
 
     def render(self):
-        for other in self.others.heros:
+        for other in self.others.__root__:
             if other.id != self.hero.id:
                 pygame.draw.circle(
                     self.game.screen, (255, 0, 0), (other.x, other.y), other.size

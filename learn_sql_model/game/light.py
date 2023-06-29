@@ -6,15 +6,41 @@ pygame = _optional_import_("pygame", group="game")
 class Light:
     def __init__(self, game):
         self.game = game
+        self.surf = pygame.Surface((1000, 100))
+        # pil_image = Image.new("RGBA", (1000, 500))
+        # pil_draw = ImageDraw.Draw(pil_image)
+        # pil_draw.pieslice((-1500, -100, 1000, 600), 340, 20, fill=(255, 250, 205))
+        # pil_image = pil_image.filter(ImageFilter.GaussianBlur(radius=5))
+
+        # mode = pil_image.mode
+        # size = pil_image.size
+        # data = pil_image.tobytes()
+
+        # self.image = pygame.image.fromstring(data, size, mode)
+
+        # for r in range(-25, 25):
+        #     _v = v.rotate(r)
+        #     pygame.draw.line(
+        #         self.game.screen,
+        #         (255, 250, 205),
+        #         (0, 50),
+        #         (0 + _v.x, self.game.player.hero.y + _v.y),
+        #         50,
+        #     )
 
     def render(self):
         mx, my = pygame.mouse.get_pos()
         v = pygame.math.Vector2(
             mx - self.game.player.hero.x, my - self.game.player.hero.y
         )
-        v.scale_to_length(1000)
+        v.scale_to_length(self.game.player.hero.flashlight_strength)
+        self.game.player.hero.flashlight_angle = v.angle_to(pygame.math.Vector2(0, 0))
+        # self.game.screen.blit(
+        #     pygame.transform.rotate(self.image, pygame.math.Vector2(0, 0).angle_to(v)),
+        #     (self.game.player.hero.x, self.game.player.hero.y - 250),
+        # )
 
-        for r in range(0, 360):
+        for r in range(-25, 25):
             _v = v.rotate(r)
             pygame.draw.line(
                 self.game.screen,
@@ -23,3 +49,29 @@ class Light:
                 (self.game.player.hero.x + _v.x, self.game.player.hero.y + _v.y),
                 50,
             )
+        # draw a circle
+        pygame.draw.circle(
+            self.game.screen,
+            (255, 250, 205),
+            (self.game.player.hero.x, self.game.player.hero.y),
+            self.game.player.hero.lanturn_strength,
+        )
+
+
+def render_flashlight(light, strength, angle):
+
+    # self.darkness.blit(
+    #     pygame.transform.smoothscale(
+    #         self.spot, [self.light_power, self.light_power]
+    #     ),
+    #     (self.x - self.light_power / 2, self.y - self.light_power / 2),
+    # )
+    for r in range(-25, 25):
+        _v = v.rotate(r)
+        pygame.draw.line(
+            light,
+            (255, 250, 205),
+            (self.game.player.hero.x, self.game.player.hero.y),
+            (self.game.player.hero.x + _v.x, self.game.player.hero.y + _v.y),
+            50,
+        )

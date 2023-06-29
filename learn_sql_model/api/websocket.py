@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 from rich.console import Console
-from sqlmodel import Session
+from sqlmodel import Session, select
 from websockets.exceptions import ConnectionClosed
 
 from learn_sql_model.api.websocket_connection_manager import manager
 from learn_sql_model.config import get_session
 from learn_sql_model.console import console
-from learn_sql_model.models.hero import HeroDelete, HeroUpdate, Heros
+from learn_sql_model.models.hero import Hero, HeroDelete, HeroUpdate, Heros
 
 web_socket_router = APIRouter()
 
@@ -46,7 +46,9 @@ async def websocket_endpoint_connect(
 ):
     Console().log(f"Client #{id} connecting")
     await manager.connect(websocket, channel)
-    heros = Heros.list(session=session)
+    statement = select(Hero)
+    heros = session.exec(statement).all()
+    heros = Heros(__root__=heros)
     await websocket.send_text(heros.json())
 
     try:
@@ -83,11 +85,18 @@ async def websocket_endpoint_hero_echo(
         while True:
             data = await websocket.receive_text()
             hero = HeroUpdate.parse_raw(data)
-            heros = Heros.list(session=session)
+            statement = select(Hero)
+            heros = session.exec(statement).all()
+            heros = Heros(__root__=heros)
             if heros != last_heros:
                 await manager.broadcast(heros.json(), "heros")
                 last_heros = heros
-            hero.update(session=session)
+            db_hero = session.get(Hero, hero.id)
+            for key, value in hero.dict(exclude_unset=True).items():
+                setattr(db_hero, key, value)
+            session.add(db_hero)
+            session.commit()
+            session.refresh(db_hero)
             console.print(heros)
             await websocket.send_text(heros.json())
 
@@ -96,7 +105,9 @@ async def websocket_endpoint_hero_echo(
             HeroDelete(id=hero.id).delete(session=session)
         except Exception:
             ...
-        heros = Heros.list(session=session)
+        statement = select(Hero)
+        heros = session.exec(statement).all()
+        heros = Heros(__root__=heros)
         await manager.broadcast(heros.json(), "heros")
         print("disconnected")
     except ConnectionClosed:
@@ -104,6 +115,8 @@ async def websocket_endpoint_hero_echo(
             HeroDelete(id=hero.id).delete(session=session)
         except Exception:
             ...
-        heros = Heros.list(session=session)
+        statement = select(Hero)
+        heros = session.exec(statement).all()
+        heros = Heros(__root__=heros)
         await manager.broadcast(heros.json(), "heros")
         print("connection closed")

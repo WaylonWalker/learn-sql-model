@@ -5,10 +5,10 @@ from websocket import create_connection
 
 from learn_sql_model.config import get_config
 from learn_sql_model.console import console
+from learn_sql_model.game.light import Light
 from learn_sql_model.game.map import Map
 from learn_sql_model.game.menu import Menu
 from learn_sql_model.game.player import Player
-from learn_sql_model.game.light import Light
 from learn_sql_model.optional import _optional_import_
 
 pygame = _optional_import_("pygame", group="game")
@@ -37,15 +37,22 @@ class Client:
         self.light = Light(self)
         self.font = pygame.font.SysFont("", 50)
         self.joysticks = {}
+        self.darkness = pygame.Surface(
+            (self.screen.get_width(), self.screen.get_height())
+        )
 
         atexit.register(self.quit)
 
     @property
     def ws(self):
         def connect():
-            self._ws = create_connection(
-                f"wss://{config.api_client.url.replace('https://', '')}/wsecho"
-            )
+            if "https" in config.api_client.url:
+                url = f"wss://{config.api_client.url.replace('https://', '')}/wsecho"
+            elif "http" in config.api_client.url:
+                url = f"ws://{config.api_client.url.replace('http://', '')}/wsecho"
+            else:
+                url = f"ws://{config.api_client.url}/wsecho"
+            self._ws = create_connection(url)
 
         if not hasattr(self, "_ws"):
             connect()
@@ -80,6 +87,19 @@ class Client:
         self.screen.fill((0, 0, 0))
         self.map.render()
         self.player.render()
+        light_level = 0
+        self.darkness.fill((light_level, light_level, light_level))
+        # self.darkness.blit(
+        #     pygame.transform.smoothscale(
+        #         self.spot, [self.light_power, self.light_power]
+        #     ),
+        #     (self.x - self.light_power / 2, self.y - self.light_power / 2),
+        # )
+        self.screen.blit(
+            pygame.transform.scale(self.darkness, self.screen.get_size()).convert(),
+            (0, 0),
+            special_flags=pygame.BLEND_MULT,
+        )
         self.light.render()
 
         # update the screen
