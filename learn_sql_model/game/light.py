@@ -52,6 +52,7 @@ class Light:
                 (self.game.player.hero.x + _v.x, self.game.player.hero.y + _v.y),
                 50,
             )
+
         # draw a circle
         pygame.draw.circle(
             self.surf,
@@ -59,6 +60,14 @@ class Light:
             (self.game.player.hero.x, self.game.player.hero.y),
             self.game.player.hero.lanturn_strength,
         )
+
+        for other in self.game.player.others.__root__:
+            pygame.draw.circle(
+                self.surf,
+                (255, 250, 205),
+                (other.x, other.y),
+                other.lanturn_strength,
+            )
 
         self.game.darkness.blit(
             pygame.transform.scale(self.surf, self.game.screen.get_size()).convert(),
