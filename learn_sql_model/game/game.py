@@ -89,18 +89,12 @@ class Client:
         self.player.render()
         light_level = 0
         self.darkness.fill((light_level, light_level, light_level))
-        # self.darkness.blit(
-        #     pygame.transform.smoothscale(
-        #         self.spot, [self.light_power, self.light_power]
-        #     ),
-        #     (self.x - self.light_power / 2, self.y - self.light_power / 2),
-        # )
+        self.light.render()
         self.screen.blit(
             pygame.transform.scale(self.darkness, self.screen.get_size()).convert(),
             (0, 0),
             special_flags=pygame.BLEND_MULT,
         )
-        self.light.render()
 
         # update the screen
         self.menu.render()

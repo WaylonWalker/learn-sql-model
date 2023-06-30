@@ -30,8 +30,8 @@ class Player:
         self.white = (255, 255, 255)
         self.x = self.game.screen.get_width() / 2
         self.y = self.game.screen.get_height() / 2
-        self.speed = 5
-        self.max_speed = 5
+        self.speed = 10
+        self.max_speed = 10
         self.image = pygame.image.load("player.png").convert_alpha()
         self.x_last = self.x
         self.y_last = self.y

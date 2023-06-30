@@ -6,7 +6,9 @@ pygame = _optional_import_("pygame", group="game")
 class Light:
     def __init__(self, game):
         self.game = game
-        self.surf = pygame.Surface((1000, 100))
+        self.surf = pygame.Surface(
+            (self.game.screen.get_width(), self.game.screen.get_height())
+        )
         # pil_image = Image.new("RGBA", (1000, 500))
         # pil_draw = ImageDraw.Draw(pil_image)
         # pil_draw.pieslice((-1500, -100, 1000, 600), 340, 20, fill=(255, 250, 205))
@@ -29,6 +31,7 @@ class Light:
         #     )
 
     def render(self):
+        self.surf.fill((0, 0, 0))
         mx, my = pygame.mouse.get_pos()
         v = pygame.math.Vector2(
             mx - self.game.player.hero.x, my - self.game.player.hero.y
@@ -43,7 +46,7 @@ class Light:
         for r in range(-25, 25):
             _v = v.rotate(r)
             pygame.draw.line(
-                self.game.screen,
+                self.surf,
                 (255, 250, 205),
                 (self.game.player.hero.x, self.game.player.hero.y),
                 (self.game.player.hero.x + _v.x, self.game.player.hero.y + _v.y),
@@ -51,10 +54,15 @@ class Light:
             )
         # draw a circle
         pygame.draw.circle(
-            self.game.screen,
+            self.surf,
             (255, 250, 205),
             (self.game.player.hero.x, self.game.player.hero.y),
             self.game.player.hero.lanturn_strength,
+        )
+
+        self.game.darkness.blit(
+            pygame.transform.scale(self.surf, self.game.screen.get_size()).convert(),
+            (0, 0),
         )
 
 
