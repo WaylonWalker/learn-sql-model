@@ -37,7 +37,7 @@ class Light:
             mx - self.game.player.hero.x, my - self.game.player.hero.y
         )
         v.scale_to_length(self.game.player.hero.flashlight_strength)
-        self.game.player.hero.flashlight_angle = v.angle_to(pygame.math.Vector2(0, 0))
+        self.game.player.hero.flashlight_angle = v.angle_to(pygame.math.Vector2(0, 1))
         # self.game.screen.blit(
         #     pygame.transform.rotate(self.image, pygame.math.Vector2(0, 0).angle_to(v)),
         #     (self.game.player.hero.x, self.game.player.hero.y - 250),
@@ -52,6 +52,20 @@ class Light:
                 (self.game.player.hero.x + _v.x, self.game.player.hero.y + _v.y),
                 50,
             )
+
+        for other in self.game.player.others.__root__:
+            v = pygame.math.Vector2(0, 1)
+            v = v.rotate(-other.flashlight_angle)
+            v.scale_to_length(other.flashlight_strength)
+            for r in range(-25, 25):
+                _v = v.rotate(r)
+                pygame.draw.line(
+                    self.surf,
+                    (255, 250, 205),
+                    (other.x, other.y),
+                    (other.x + _v.x, other.y + _v.y),
+                    50,
+                )
 
         # draw a circle
         pygame.draw.circle(
