@@ -201,7 +201,7 @@ class Player:
         self.x_last = self.hero.x
         self.y_last = self.hero.y
 
-        if self.game.ticks % 5 == 0 or self.game.ticks == 0:
+        if self.game.ticks % 30 == 0 or self.game.ticks == 0:
             console.print("updating")
             update = HeroUpdate(**self.hero.dict(exclude_unset=True))
             console.print(update)
