@@ -36,7 +36,11 @@ class Map:
         self.persistence = 0.05  # Amplitude of each octave
         self.lacunarity = 1.0  # Frequency of each octave
         self.thresh = 125
-        self.pre_draw()
+        # try to load the map from map.png
+        try:
+            self.surf = pygame.image.load("map.png").convert_alpha()
+        except FileNotFoundError:
+            self.pre_draw()
 
     def refresh_surf(self):
 
@@ -66,6 +70,7 @@ class Map:
 
     def pre_draw(self):
         self.refresh_surf()
+
         for x in range(int(self.screen_width)):
             for y in range(int(self.screen_height)):
                 if not self.point_check_collision(x, y):
@@ -80,6 +85,7 @@ class Map:
                         ),
                     )
         pygame.image.save(self.surf, "map.png")
+
         # av1 = (
         #     Image.open("rock.jpg")
         #     .convert("RGB")

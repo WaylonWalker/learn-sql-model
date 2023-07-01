@@ -21,6 +21,7 @@ class Player:
             flashlight_angle=0,
         )
         self.hero = HeroCreate(**hero.dict()).post()
+        self.hero.size = 64
 
         self.game = game
         self.others = []  # Heros(heros=[])
@@ -31,7 +32,10 @@ class Player:
         self.y = self.game.screen.get_height() / 2
         self.speed = 10
         self.max_speed = 10
-        self.image = pygame.image.load("player.png").convert_alpha()
+        self.image = pygame.image.load("creeper.png").convert_alpha()
+        self.image = pygame.transform.scale(
+            self.image, (self.hero.size, self.hero.size)
+        )
         self.x_last = self.x
         self.y_last = self.y
         self.hitbox_surface = pygame.Surface((self.width, self.height))
@@ -201,16 +205,16 @@ class Player:
         self.x_last = self.hero.x
         self.y_last = self.hero.y
 
-        if self.game.ticks % 30 == 0 or self.game.ticks == 0:
-            console.print("updating")
-            update = HeroUpdate(**self.hero.dict(exclude_unset=True))
-            console.print(update)
-            self.game.ws.send(update.json())
-            console.print("sent")
+        # if self.game.ticks % 1 == 0 or self.game.ticks == 0:
+        console.print("updating")
+        update = HeroUpdate(**self.hero.dict(exclude_unset=True))
+        console.print(update)
+        self.game.ws.send(update.json())
+        console.print("sent")
 
-            raw_heros = self.game.ws.recv()
-            console.print(raw_heros)
-            self.others = Heros.parse_raw(raw_heros)
+        raw_heros = self.game.ws.recv()
+        console.print(raw_heros)
+        self.others = Heros.parse_raw(raw_heros)
 
     def draw(self):
         self.move()
@@ -222,18 +226,29 @@ class Player:
     def render(self):
         for other in self.others.__root__:
             if other.id != self.hero.id:
-                pygame.draw.circle(
-                    self.game.screen, (255, 0, 0), (other.x, other.y), other.size
-                )
+                # put self.image on the game.screen
                 self.game.screen.blit(
-                    self.game.font.render(other.name, False, (255, 255, 255), 1),
-                    (other.x, other.y),
+                    self.image,
+                    (other.x - other.size / 2, other.y - other.size / 2),
                 )
 
-        pygame.draw.circle(
-            self.game.screen, (0, 0, 255), (self.hero.x, self.hero.y), self.hero.size
+                # pygame.draw.circle(
+                #     self.game.screen, (255, 0, 0), (other.x, other.y), other.size
+                # )
+                self.game.screen.blit(
+                    self.game.font.render(other.name, False, (255, 255, 255), 1),
+                    (other.x - other.size / 2, other.y + other.size / 2),
+                )
+        self.game.screen.blit(
+            self.image,
+            (self.hero.x - self.hero.size / 2, self.hero.y - self.hero.size / 2),
         )
+
+        # pygame.draw.circle(
+        #     self.game.screen, (0, 0, 255), (self.hero.x, self.hero.y), self.hero.size
+        # )
+
         self.game.screen.blit(
             self.game.font.render(self.hero.name, False, (255, 255, 255), 1),
-            (self.hero.x, self.hero.y),
+            (self.hero.x - self.hero.size / 2, self.hero.y + self.hero.size / 2),
         )

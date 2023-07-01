@@ -36,7 +36,7 @@ class Client:
         self.menu = Menu(self)
         self.map = Map(self)
         self.light = Light(self)
-        self.font = pygame.font.SysFont("", 50)
+        self.font = pygame.font.SysFont("", 25)
         self.joysticks = {}
         self.darkness = pygame.Surface(
             (self.screen.get_width(), self.screen.get_height())
@@ -62,10 +62,10 @@ class Client:
         return self._ws
 
     def run(self):
-        # from pyinstrument import Profiler
+        from pyinstrument import Profiler
 
-        # profiler = Profiler()
-        # profiler.start()
+        profiler = Profiler()
+        profiler.start()
         while self.running:
             console.print("running")
             console.print("handle_events")
@@ -80,8 +80,8 @@ class Client:
             Console().print(self.clock.get_fps())
             console.print(f"time: {time}")
             console.print(f"ticks: {self.ticks}")
-        # profiler.stop()
-        # print(profiler.output_text())
+        profiler.stop()
+        print(profiler.output_text())
         self.quit()
 
     def quit(self):
