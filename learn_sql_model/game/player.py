@@ -51,16 +51,15 @@ class Player:
         self.joysticks = {}
 
     def rename_hero(self):
-        old_hero = self.hero
         hero = HeroFactory().build(
             size=self.hero.size,
             x=self.hero.x,
             y=self.hero.y,
-            id=old_hero.id,
+            id=self.hero.id,
             flashlight_strength=self.hero.flashlight_strength,
             lanturn_strength=self.hero.lanturn_strength,
         )
-        self.hero = HeroCreate(**hero.dict()).post()
+        self.hero = HeroUpdate(**hero.dict()).update()
 
     def quit(self):
         try:

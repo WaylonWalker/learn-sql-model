@@ -89,6 +89,7 @@ class HeroUpdate(HeroBase):
         )
         if r.status_code != 200:
             raise RuntimeError(f"{r.status_code}:\n {r.text}")
+        return Hero.parse_obj(r.json())
 
 
 class HeroDelete(BaseModel):
