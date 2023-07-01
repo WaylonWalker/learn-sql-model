@@ -54,6 +54,8 @@ class Light:
             )
 
         for other in self.game.player.others.__root__:
+            if other.id == self.game.player.hero.id:
+                continue
             v = pygame.math.Vector2(0, 1)
             v = v.rotate(-other.flashlight_angle)
             v.scale_to_length(other.flashlight_strength)
