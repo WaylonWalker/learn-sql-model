@@ -1,6 +1,5 @@
-from learn_sql_model.config import get_config
 from learn_sql_model.console import console
-from learn_sql_model.models.hero import Hero, HeroCreate, HeroUpdate, Heros
+from learn_sql_model.models.hero import HeroCreate, HeroDelete, HeroUpdate, Heros
 from learn_sql_model.optional import _optional_import_
 
 pygame = _optional_import_("pygame", group="game")
@@ -61,10 +60,11 @@ class Player:
 
     def quit(self):
         try:
-            session = get_config().database.session
-            hero = session.get(Hero, self.hero.id)
-            session.delete(hero)
-            session.commit()
+            # session = get_config().database.session
+            # hero = session.get(Hero, self.hero.id)
+            # session.delete(hero)
+            # session.commit()
+            HeroDelete.delete(id=self.hero.id)
         except RuntimeError:
             pass
 

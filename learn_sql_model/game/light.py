@@ -38,10 +38,6 @@ class Light:
         )
         v.scale_to_length(self.game.player.hero.flashlight_strength)
         self.game.player.hero.flashlight_angle = v.angle_to(pygame.math.Vector2(0, 1))
-        # self.game.screen.blit(
-        #     pygame.transform.rotate(self.image, pygame.math.Vector2(0, 0).angle_to(v)),
-        #     (self.game.player.hero.x, self.game.player.hero.y - 250),
-        # )
 
         for r in range(-25, 25):
             _v = v.rotate(r)
@@ -84,7 +80,7 @@ class Light:
         )
 
         self.game.darkness.blit(
-            pygame.transform.scale(self.surf, self.game.screen.get_size()).convert(),
+            self.surf,
             (0, 0),
         )
 

@@ -1,5 +1,6 @@
 import atexit
 
+from rich.console import Console
 from typer import Typer
 from websocket import create_connection
 
@@ -61,6 +62,10 @@ class Client:
         return self._ws
 
     def run(self):
+        from pyinstrument import Profiler
+
+        profiler = Profiler()
+        profiler.start()
         while self.running:
             console.print("running")
             console.print("handle_events")
@@ -72,8 +77,11 @@ class Client:
             time = self.clock.tick(60)
             self.elapsed = time / 100
             self.ticks += 1
+            Console().print(self.clock.get_fps())
             console.print(f"time: {time}")
             console.print(f"ticks: {self.ticks}")
+        profiler.stop()
+        print(profiler.output_text())
         self.quit()
 
     def quit(self):
@@ -91,7 +99,7 @@ class Client:
         self.darkness.fill((light_level, light_level, light_level))
         self.light.render()
         self.screen.blit(
-            pygame.transform.scale(self.darkness, self.screen.get_size()).convert(),
+            self.darkness,
             (0, 0),
             special_flags=pygame.BLEND_MULT,
         )

@@ -1,6 +1,7 @@
-from learn_sql_model.optional import _optional_import_
 import pydantic
 from rich.console import Console
+
+from learn_sql_model.optional import _optional_import_
 
 snoise2 = _optional_import_("noise", "snoise2", group="game")
 pygame = _optional_import_("pygame", group="game")
@@ -38,6 +39,7 @@ class Map:
         self.pre_draw()
 
     def refresh_surf(self):
+
         self.surf = pygame.Surface((self.screen_width, self.screen_height))
 
     def get_noise(self, x, y):
@@ -53,7 +55,7 @@ class Map:
 
     def render(self):
         self.game.screen.blit(
-            pygame.transform.scale(self.surf, (self.screen_width, self.screen_height)),
+            self.surf,
             (0, 0),
         )
 
