@@ -1,6 +1,5 @@
 import atexit
 
-from rich.console import Console
 from typer import Typer
 from websocket import create_connection
 
@@ -62,10 +61,13 @@ class Client:
         return self._ws
 
     def run(self):
-        # from pyinstrument import Profiler
+        try:
+            from pyinstrument import Profiler
 
-        # profiler = Profiler()
-        # profiler.start()
+            profiler = Profiler()
+            profiler.start()
+        except ImportError:
+            profiler = None
         while self.running:
             console.print("running")
             console.print("handle_events")
@@ -77,11 +79,12 @@ class Client:
             time = self.clock.tick(60)
             self.elapsed = time / 100
             self.ticks += 1
-            Console().print(self.clock.get_fps())
+            # Console().print(self.clock.get_fps())
             console.print(f"time: {time}")
             console.print(f"ticks: {self.ticks}")
-        # profiler.stop()
-        # print(profiler.output_text())
+        if profiler:
+            profiler.stop()
+            print(profiler.output_text())
         self.quit()
 
     def quit(self):
